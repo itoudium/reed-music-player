@@ -5,11 +5,11 @@ import PCM from "pcm-util"
 import audioBufferUtils from "audio-buffer-utils"
 import EventEmitter from 'events';
 import { waitForEvent } from '../../utils/events';
+import { PlaybackInfoType } from '../../../types/AppStateType';
 
 const filepath = "/Users/110d/Music/Music/Media/Music/Chet Baker/Chet Baker/02 A Little Duet For Zoot And Chet.mp3";
 
 
-type StatusType = "idle" | "playing" | "pause"
 type JobType = {
   action: "play",
   file: string;
@@ -20,16 +20,28 @@ type JobType = {
 
 class PlaybackManager {
 
-  status: StatusType = "idle";
+  status: PlaybackInfoType["status"] = "stopped";
   running = false;
   queue: (JobType)[] = [];
   events = new EventEmitter();
   speaker: Speaker | null = null;
+  playStartPosition: number = 0;
+  playStartTime: Date | null = null;
+  duration: number = 0;
 
   constructor() {
     this.events.on("added", () => {
       this.processQueue();
     })
+
+    // broadcast playback status
+    setInterval(() => {
+      this.events.emit("updateState", {
+        status: this.status,
+        position: this.playStartPosition + (this.playStartTime ? (new Date().getTime() - this.playStartTime.getTime()) / 1000 : 0),
+        duration: this.duration,
+      } as PlaybackInfoType)
+    }, 1_000);
   }
 
   async processQueue() {
@@ -94,6 +106,12 @@ class PlaybackManager {
     });
 
     const arrayBuffer = PCM.toArrayBuffer(audioBuffer);
+
+    this.playStartTime = new Date();
+    this.playStartPosition = job.position ?? 0;
+    this.duration = _audioBuffer.duration;
+    this.status = "playing";
+
     speaker.write(Buffer.from(arrayBuffer), (err) => {
       this.events.emit("stopped");
     });
@@ -104,6 +122,11 @@ class PlaybackManager {
 
     this.speaker.close(false);
     this.speaker = null;
+    this.status = "stopped";
+    // save current position to playStartPosition
+    this.playStartPosition = this.playStartTime ? (new Date().getTime() - this.playStartTime.getTime()) / 1000 : 0;
+    this.playStartTime = null;
+
     await waitForEvent(this.events, "stopped");
     console.log("stopped");
   }

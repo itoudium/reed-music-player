@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { withEmotionCache } from '@emotion/react'
 import { ChakraProvider } from '@chakra-ui/react'
 import {
@@ -12,11 +12,12 @@ import {
 import { MetaFunction, LinksFunction } from '@remix-run/node' // Depends on the runtime you choose
 
 import { ServerStyleContext, ClientStyleContext } from './context'
+import { AppProvider } from './hooks/AppProvider'
 
 export const meta: MetaFunction = () => [
   {
     charset: 'utf-8',
-    title: 'New Remix App',
+    title: 'reed',
     viewport: 'width=device-width,initial-scale=1',
   }
 ];
@@ -81,10 +82,12 @@ const Document = withEmotionCache(
 
 export default function App() {
   return (
-    <Document>
-      <ChakraProvider>
-        <Outlet />
-      </ChakraProvider>
-    </Document>
+    <AppProvider>
+      <Document>
+        <ChakraProvider>
+          <Outlet />
+        </ChakraProvider>
+      </Document>
+    </AppProvider>
   )
 }
