@@ -38,7 +38,7 @@ function useApp(): AppState {
 
   return {
     state,
-    isConnected
+    isConnected,
   }
 }
 

@@ -1,12 +1,10 @@
-
-
 export type PlaybackInfoType = {
-  status: "playing" | "paused" | "stopped";
+  status: 'playing' | 'paused' | 'stopped';
+  contentId?: string;
   position?: number;
   duration?: number;
-}
-
+};
 
 export type AppStateType = {
   playbackInfo: PlaybackInfoType;
-}
+};

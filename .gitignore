@@ -120,3 +120,5 @@ dist
 public/build/
 build/
 
+# sqlite
+prisma/data/*.db

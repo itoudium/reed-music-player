@@ -1,46 +1,56 @@
 import audioDecode from 'audio-decode';
-import fs from "fs/promises"
-import Speaker from "speaker"
-import PCM from "pcm-util"
-import audioBufferUtils from "audio-buffer-utils"
+import fs from 'fs/promises';
+import Speaker from 'speaker';
+import PCM from 'pcm-util';
+import audioBufferUtils from 'audio-buffer-utils';
 import EventEmitter from 'events';
 import { waitForEvent } from '../../utils/events';
 import { PlaybackInfoType } from '../../../types/AppStateType';
+import { prisma } from '../prisma';
+import { Content } from '@prisma/client';
 
-const filepath = "/Users/110d/Music/Music/Media/Music/Chet Baker/Chet Baker/02 A Little Duet For Zoot And Chet.mp3";
+const filepath =
+  '/Users/110d/Music/Music/Media/Music/Chet Baker/Chet Baker/02 A Little Duet For Zoot And Chet.mp3';
 
-
-type JobType = {
-  action: "play",
-  file: string;
-  position?: number;
-} | {
-  action: "stop",
-}
+type JobType =
+  | {
+      action: 'play';
+      contentId: string;
+      position?: number;
+    }
+  | {
+      action: 'stop';
+    };
 
 class PlaybackManager {
-
-  status: PlaybackInfoType["status"] = "stopped";
+  status: PlaybackInfoType['status'] = 'stopped';
   running = false;
-  queue: (JobType)[] = [];
+  queue: JobType[] = [];
   events = new EventEmitter();
   speaker: Speaker | null = null;
   playStartPosition: number = 0;
   playStartTime: Date | null = null;
+  content?: Content;
   duration: number = 0;
+  private _audioBuffer?: AudioBuffer;
 
   constructor() {
-    this.events.on("added", () => {
+    this.events.on('added', () => {
       this.processQueue();
-    })
+    });
 
     // broadcast playback status
     setInterval(() => {
-      this.events.emit("updateState", {
+      this.events.emit('updateState', {
         status: this.status,
-        position: this.playStartPosition + (this.playStartTime ? (new Date().getTime() - this.playStartTime.getTime()) / 1000 : 0),
+        position:
+          this.playStartPosition +
+          (this.playStartTime
+            ? (new Date().getTime() - this.playStartTime.getTime()) / 1000
+            : 0),
         duration: this.duration,
-      } as PlaybackInfoType)
+        contentId: this.content?.id,
+      } as PlaybackInfoType);
     }, 1_000);
   }
 
@@ -50,10 +60,10 @@ class PlaybackManager {
       try {
         this.running = true;
         switch (task?.action) {
-          case "play":
+          case 'play':
             await this._play(task);
             break;
-          case "stop":
+          case 'stop':
             await this._stop(task);
             break;
         }
@@ -66,69 +76,91 @@ class PlaybackManager {
   }
 
   private addJob(job: JobType) {
-    this.queue.push(job)
-    this.events.emit("added");
+    this.queue.push(job);
+    this.events.emit('added');
   }
 
-  play() {
+  play(params: { contentId: string; position?: number }) {
     this.addJob({
-      action: "play",
-      file: filepath
-    })
+      action: 'play',
+      contentId: params.contentId,
+      position: params.position,
+    });
   }
 
   stop() {
     this.addJob({
-      action: "stop"
-    })
+      action: 'stop',
+    });
 
-    this.events.on
+    this.events.on;
   }
 
-
-  private async _play(job: JobType & { action: "play" }) {
+  private async _play(job: JobType & { action: 'play' }) {
     if (this.speaker) {
       this.speaker.close(false);
     }
-    const buffer = await fs.readFile(job.file);
-    const _audioBuffer = await audioDecode(buffer);
-    console.log("length:", _audioBuffer.length);
-    console.log("duration:", _audioBuffer.duration);
-    const positionProgress = job.position ?? 0 / _audioBuffer.duration;
-    const positionBytes = _audioBuffer.length * positionProgress;
-    console.log("position: ", positionProgress, positionBytes);
+    const content = await prisma.content.findUnique({
+      where: {
+        id: job.contentId,
+      },
+    });
+    if (!content) {
+      throw new Error('content not found');
+    }
+    if (!this.content || content.id !== this.content?.id) {
+      // decode audio
+      console.time('decode');
+      const buffer = await fs.readFile(content.path);
+      this._audioBuffer = await audioDecode(buffer);
+      console.timeEnd('decode');
+    }
 
-    const audioBuffer = audioBufferUtils.slice(_audioBuffer, positionBytes);
-    const speaker = this.speaker = new Speaker({
+    if (!this._audioBuffer) throw new Error('audioBuffer not found');
+
+    console.log('length:', this._audioBuffer.length);
+    console.log('duration:', this._audioBuffer.duration);
+    const positionProgress = job.position ?? 0 / this._audioBuffer.duration;
+    const positionBytes = this._audioBuffer.length * positionProgress;
+    console.log('position: ', positionProgress, positionBytes);
+
+    const audioBuffer = audioBufferUtils.slice(
+      this._audioBuffer,
+      positionBytes
+    );
+    const speaker = (this.speaker = new Speaker({
       channels: 2,
       bitDepth: 16,
       sampleRate: 44100,
-    });
+    }));
 
     const arrayBuffer = PCM.toArrayBuffer(audioBuffer);
 
     this.playStartTime = new Date();
     this.playStartPosition = job.position ?? 0;
-    this.duration = _audioBuffer.duration;
-    this.status = "playing";
+    this.duration = this._audioBuffer.duration;
+    this.status = 'playing';
+    this.content = content;
 
     speaker.write(Buffer.from(arrayBuffer), (err) => {
-      this.events.emit("stopped");
+      this.events.emit('stopped');
     });
   }
 
-  private async _stop(_: JobType & { action: "stop" }) {
+  private async _stop(_: JobType & { action: 'stop' }) {
     if (!this.speaker) return;
 
     this.speaker.close(false);
     this.speaker = null;
-    this.status = "stopped";
+    this.status = 'stopped';
     // save current position to playStartPosition
-    this.playStartPosition = this.playStartTime ? (new Date().getTime() - this.playStartTime.getTime()) / 1000 : 0;
+    this.playStartPosition = this.playStartTime
+      ? (new Date().getTime() - this.playStartTime.getTime()) / 1000
+      : 0;
     this.playStartTime = null;
 
-    await waitForEvent(this.events, "stopped");
-    console.log("stopped");
+    await waitForEvent(this.events, 'stopped');
+    console.log('stopped');
   }
 }
 
