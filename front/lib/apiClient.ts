@@ -1,4 +1,4 @@
-import { Content } from '@prisma/client';
+import { Album, Content } from '@prisma/client';
 import axios from 'axios';
 
 const client = axios.create();
@@ -29,5 +29,18 @@ type GetContentResult = {
 
 export async function getContent(options: {}): Promise<GetContentResult> {
   const { data } = await client.post('/api/getContent', options);
+  return data;
+}
+
+type ListAlbumsResult = {
+  albums: Album[];
+  totalCount: number;
+};
+
+export async function listAlbums(options: {
+  limit?: number;
+  offset?: number;
+}): Promise<ListAlbumsResult> {
+  const { data } = await client.post('/api/listAlbums', options);
   return data;
 }

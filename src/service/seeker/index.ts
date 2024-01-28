@@ -1,8 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
 import { prisma } from '../prisma';
+import { parseFile } from 'music-metadata';
+import { buildAlbums } from './album';
 // for debug
 const entryPoints = ['/Users/110d/Music/Music/Media/Music/Chet Baker/'];
 
@@ -19,6 +20,8 @@ class Seeker {
     for (const p of entryPoints) {
       await this.seekPath(p);
     }
+
+    await buildAlbums();
   }
 
   async seekPath(p: string) {
@@ -32,7 +35,6 @@ class Seeker {
         await this.seekPath(filepath);
       } else if (s.isFile()) {
         if (file.match(/\.mp3$/)) {
-          console.log('found', filepath);
           await this.registerContent(filepath);
         }
       }
@@ -41,6 +43,23 @@ class Seeker {
 
   async registerContent(filepath: string) {
     console.log('registerContent', filepath);
+    const meta = await parseFile(filepath);
+    // meta.common.artists;
+    // meta.common.album;
+    console.log(meta.common);
+
+    const metaRecords = {
+      title: meta.common.title,
+      artist: meta.common.artist,
+      albumArtist: meta.common.albumartist,
+      album: meta.common.album,
+      duration: meta.format.duration ?? 0,
+      trackNumber: meta.common.track.no,
+      year: meta.common.year,
+      genre: meta.common.genre?.join(','),
+      comment: meta.common.comment?.join(','),
+    };
+
     const content = await prisma.content.findUnique({
       where: {
         path: filepath,
@@ -48,7 +67,14 @@ class Seeker {
     });
     if (content) {
       console.log('already registered', filepath);
-      // TODO update
+      await prisma.content.update({
+        where: {
+          id: content.id,
+        },
+        data: {
+          ...metaRecords,
+        },
+      });
       return;
     }
 
@@ -56,14 +82,7 @@ class Seeker {
     await prisma.content.create({
       data: {
         path: filepath,
-        title: path.basename(filepath),
-        artist: 'Unknown',
-        album: path.dirname(filepath),
-        duration: 0,
-        trackNumber: 0,
-        year: 0,
-        genre: 'Unknown',
-        comment: '',
+        ...metaRecords,
       },
     });
   }
@@ -105,6 +124,23 @@ class Seeker {
     });
 
     return content;
+  }
+
+  async listAlbums(params: { limit?: number; offset?: number }) {
+    const albums = await prisma.album.findMany({
+      take: params.limit,
+      skip: params.offset,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const totalCount = await prisma.album.count();
+
+    return {
+      albums: albums,
+      totalCount: totalCount,
+    };
   }
 }
 

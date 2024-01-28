@@ -18,12 +18,57 @@ model Content {
   updatedAt DateTime @updatedAt
 
   // metadata field
-  title       String
-  artist      String
-  album       String
-  genre       String
-  trackNumber Int
-  year        Int
-  comment     String
+  title       String?
+  artist      String?
+  album       String?
+  albumArtist String?
+  genre       String?
+  trackNumber Int?
+  year        Int?
+  comment     String?
   duration    Int
+
+  // relations
+  albumId  String?
+  albumModel    Album?   @relation(fields: [albumId], references: [id])
+
+  artists ArtistsOnContents[]
+}
+
+model Artist {
+  id   String @id @default(uuid())
+  name String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  albums Album[]
+
+  contents ArtistsOnContents[]
+}
+
+model ArtistsOnContents {
+  artistId String
+  contentId String
+
+  artistModel Artist @relation(fields: [artistId], references: [id])
+  contentModel Content @relation(fields: [contentId], references: [id])
+
+  @@id([artistId, contentId])
+}
+model Album {
+  id   String @id @default(uuid())
+  name String
+  albumArtist String?
+
+  artistId String?
+  artistModel   Artist?  @relation(fields: [artistId], references: [id])
+
+  contents Content[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, albumArtist])
 }

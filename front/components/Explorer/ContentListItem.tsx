@@ -1,9 +1,10 @@
-import { Box, Icon } from '@chakra-ui/react';
+import { Box, Icon, Stack } from '@chakra-ui/react';
 import { Content } from '@prisma/client';
 import React from 'react';
 import { BsPlay } from 'react-icons/bs';
 import { play } from '../../lib/apiClient';
 import { useAppContext } from '../../hooks/AppProvider';
+import { secondToDisplayTime } from '../../lib/timeUtil';
 
 export function ContentListItem({ content }: { content: Content }) {
   const { state } = useAppContext();
@@ -24,7 +25,10 @@ export function ContentListItem({ content }: { content: Content }) {
           transform="translateY(-50%)"
         />
       )}
-      {content.title}
+      <Stack direction="row" justifyContent="space-between">
+        <Box>{content.title}</Box>
+        <Box>{secondToDisplayTime(content.duration)}</Box>
+      </Stack>
     </Box>
   );
 }

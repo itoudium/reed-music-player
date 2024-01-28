@@ -9,9 +9,6 @@ import { PlaybackInfoType } from '../../../types/AppStateType';
 import { prisma } from '../prisma';
 import { Content } from '@prisma/client';
 
-const filepath =
-  '/Users/110d/Music/Music/Media/Music/Chet Baker/Chet Baker/02 A Little Duet For Zoot And Chet.mp3';
-
 type JobType =
   | {
       action: 'play';

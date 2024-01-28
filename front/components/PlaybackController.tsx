@@ -38,16 +38,20 @@ export function PlaybackController() {
   };
 
   return (
-    <Container
+    <Box
       position="fixed"
       zIndex={1}
       bottom={0}
       left={0}
       right={0}
+      pt={3}
+      w="100vw"
       backgroundColor="white"
-      centerContent
+      borderColor="gray.200"
+      borderTopWidth={1}
+      alignItems={'center'}
     >
-      <Box maxW="md" width="100%">
+      <Box maxW="md" m="auto">
         <Stack direction="row" justifyContent="center">
           <Button variant="ghost">
             <Icon as={BsSkipBackward} />
@@ -75,6 +79,7 @@ export function PlaybackController() {
             value={sliderPosition}
             focusThumbOnChange={false}
             onChangeEnd={(val) => console.log(val)}
+            colorScheme="green"
           >
             <SliderTrack>
               <SliderFilledTrack />
@@ -83,6 +88,6 @@ export function PlaybackController() {
           </Slider>
         </Box>
       </Box>
-    </Container>
+    </Box>
   );
 }

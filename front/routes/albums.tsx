@@ -1,12 +1,12 @@
 import React from 'react';
 import { Container } from '@chakra-ui/react';
-import { AllContents } from '../components/Explorer/AllContents';
+import { AllAlbums } from '../components/Explorer/AllAlbums';
 
-export default function Home() {
+export default function Albums() {
   return (
     <>
       <Container>
-        <AllContents />
+        <AllAlbums />
       </Container>
     </>
   );

@@ -12,6 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.3",
     "@emotion/server": "^11.11.0",
@@ -32,6 +33,7 @@
     "framer-motion": "^6.5.1",
     "isbot": "^4.4.0",
     "morgan": "^1.10.0",
+    "music-metadata": "^7.14.0",
     "pcm-util": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

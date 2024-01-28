@@ -1,12 +1,12 @@
 import { Box, Spinner } from '@chakra-ui/react';
 import { useAPILoader } from '../../hooks/apiLoader';
-import { listContent } from '../../lib/apiClient';
+import { listAlbums } from '../../lib/apiClient';
+import { AlbumList } from './AlbumList';
 import React from 'react';
-import { ContentList } from './ContentList';
 
-export function AllContents() {
+export function AllAlbums() {
   const [data, isLoading] = useAPILoader(() => {
-    return listContent({});
+    return listAlbums({});
   });
 
   if (isLoading || !data) {
@@ -15,7 +15,7 @@ export function AllContents() {
 
   return (
     <Box mb="200px">
-      <ContentList contents={data.contents} />
+      <AlbumList albums={data.albums} />
     </Box>
   );
 }
