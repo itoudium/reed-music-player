@@ -116,6 +116,21 @@ class Seeker {
     };
   }
 
+  async listAlbumContents(params: { albumId: string }) {
+    const contents = await prisma.content.findMany({
+      where: {
+        albumId: params.albumId,
+      },
+      orderBy: {
+        trackNumber: 'asc',
+      },
+    });
+
+    return {
+      contents: contents,
+    };
+  }
+
   async getContent(id: string) {
     const content = await prisma.content.findUnique({
       where: {
@@ -141,6 +156,16 @@ class Seeker {
       albums: albums,
       totalCount: totalCount,
     };
+  }
+
+  async getAlbum(id: string) {
+    const album = await prisma.album.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    return album;
   }
 }
 

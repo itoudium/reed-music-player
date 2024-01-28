@@ -15,6 +15,25 @@ import { ServerStyleContext, ClientStyleContext } from './context';
 import { AppProvider } from './hooks/AppProvider';
 import { SideMenu } from './components/SideMenu';
 import { PlaybackController } from './components/PlaybackController';
+import { extendTheme } from '@chakra-ui/react';
+
+const theme = extendTheme({
+  fontSizes: {
+    xs: '0.63rem',
+    sm: '0.75rem',
+    md: '0.875rem',
+    lg: '1rem',
+    xl: '1.125rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+    '4xl': '2.25rem',
+    '5xl': '3rem',
+    '6xl': '3.75rem',
+    '7xl': '4.5rem',
+    '8xl': '6rem',
+    '9xl': '8rem',
+  },
+});
 
 export const meta: MetaFunction = () => [
   {
@@ -86,8 +105,8 @@ export default function App() {
   return (
     <AppProvider>
       <Document>
-        <ChakraProvider>
-          <Stack direction="row" spacing={0}>
+        <ChakraProvider theme={theme}>
+          <Stack direction="row" spacing={0} fontSize="sm">
             <SideMenu />
             <Outlet />
           </Stack>

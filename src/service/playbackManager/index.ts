@@ -38,6 +38,7 @@ class PlaybackManager {
 
     // broadcast playback status
     setInterval(() => {
+      if (this.status !== 'playing' && this.status === this._lastStatus) return;
       this.events.emit('updateState', {
         status: this.status,
         position:
@@ -48,8 +49,11 @@ class PlaybackManager {
         duration: this.duration,
         contentId: this.content?.id,
       } as PlaybackInfoType);
+      this._lastStatus = this.status;
     }, 1_000);
   }
+
+  private _lastStatus?: PlaybackInfoType['status'];
 
   async processQueue() {
     while (this.queue.length > 0) {

@@ -44,3 +44,17 @@ export async function listAlbums(options: {
   const { data } = await client.post('/api/listAlbums', options);
   return data;
 }
+
+export async function getAlbum(options: {
+  id: string;
+}): Promise<{ album: Album }> {
+  const { data } = await client.post('/api/getAlbum', options);
+  return data;
+}
+
+export async function listAlbumContents(options: {
+  albumId: string;
+}): Promise<{ contents: Content[] }> {
+  const { data } = await client.post('/api/listAlbumContents', options);
+  return data;
+}

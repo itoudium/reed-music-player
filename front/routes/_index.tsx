@@ -4,10 +4,8 @@ import { AllContents } from '../components/Explorer/AllContents';
 
 export default function Home() {
   return (
-    <>
-      <Container>
-        <AllContents />
-      </Container>
-    </>
+    <Container>
+      <AllContents />
+    </Container>
   );
 }

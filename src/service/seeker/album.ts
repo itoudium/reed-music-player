@@ -27,9 +27,11 @@ export async function buildAlbums() {
     const album = albums.find(
       (a) => a.name === albumName && a.albumArtist === albumArtist
     );
+    let albumId: string;
     if (album) {
       console.log('album exists', album.id);
       foundAlbums.push(album);
+      albumId = album.id;
     } else {
       // create new album
       const newAlbum = await prisma.album.create({
@@ -40,7 +42,18 @@ export async function buildAlbums() {
       });
       albums.push(newAlbum);
       foundAlbums.push(newAlbum);
+      albumId = newAlbum.id;
     }
+
+    // set albumId to content
+    await prisma.content.update({
+      where: {
+        id: content.id,
+      },
+      data: {
+        albumId: albumId,
+      },
+    });
   }
 
   // delete unused albums
