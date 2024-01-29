@@ -28,6 +28,9 @@ model Content {
   comment     String?
   duration    Int
 
+  pictureId String?
+  pictureModel Picture? @relation(fields: [pictureId], references: [id])
+
   // relations
   albumId  String?
   albumModel    Album?   @relation(fields: [albumId], references: [id])
@@ -61,6 +64,7 @@ model Album {
   id   String @id @default(uuid())
   name String
   albumArtist String?
+  albumPath String?
 
   artistId String?
   artistModel   Artist?  @relation(fields: [artistId], references: [id])
@@ -70,5 +74,24 @@ model Album {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  pictureId String?
+  pictureModel Picture? @relation(fields: [pictureId], references: [id])
+
   @@unique([name, albumArtist])
+}
+
+model Picture {
+  id   String @id @default(uuid())
+
+  type String
+  size Int
+  data Bytes
+  hash String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  albums Album[]
+  contents Content[]
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Box,
   Button,
+  Icon,
   Link,
   Spacer,
   Stack,
@@ -16,6 +17,11 @@ import {
 } from '@chakra-ui/react';
 import { HamburgerIcon } from '@chakra-ui/icons';
 import { Link as RemixLink } from '@remix-run/react';
+import {
+  BsMusicNote,
+  BsMusicNoteBeamed,
+  BsPersonLinesFill,
+} from 'react-icons/bs';
 
 export function SideMenu() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -54,7 +60,7 @@ export function SideMenu() {
           <HamburgerIcon />
         </Button>
       </Box>
-      <Spacer hideFrom={'md'} my={10}></Spacer>
+      <Spacer hideFrom={'md'} my={8}></Spacer>
       <Drawer
         isOpen={isOpen}
         placement="left"
@@ -81,7 +87,12 @@ export function SideMenuContent() {
         Home
       </Link>
       <Link to="/albums" as={RemixLink}>
+        <Icon as={BsMusicNoteBeamed} mr={2} />
         Album
+      </Link>
+      <Link to="/artists" as={RemixLink}>
+        <Icon as={BsPersonLinesFill} mr={2} />
+        Artist
       </Link>
     </Stack>
   );

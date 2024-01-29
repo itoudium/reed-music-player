@@ -1,5 +1,5 @@
 export type PlaybackInfoType = {
-  status: 'playing' | 'paused' | 'stopped';
+  status: 'playing' | 'decoding' | 'paused' | 'stopped';
   contentId?: string;
   position?: number;
   duration?: number;

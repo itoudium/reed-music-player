@@ -27,7 +27,9 @@ type GetContentResult = {
   content: Content;
 };
 
-export async function getContent(options: {}): Promise<GetContentResult> {
+export async function getContent(options: {
+  id: string;
+}): Promise<GetContentResult> {
   const { data } = await client.post('/api/getContent', options);
   return data;
 }

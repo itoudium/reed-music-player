@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { withEmotionCache } from '@emotion/react';
-import { ChakraProvider, Hide, Show, Stack } from '@chakra-ui/react';
+import { Box, ChakraProvider, Stack } from '@chakra-ui/react';
 import {
   Links,
   LiveReload,
@@ -21,17 +21,19 @@ const theme = extendTheme({
   fontSizes: {
     xs: '0.63rem',
     sm: '0.75rem',
-    md: '0.875rem',
-    lg: '1rem',
-    xl: '1.125rem',
-    '2xl': '1.5rem',
-    '3xl': '1.875rem',
-    '4xl': '2.25rem',
-    '5xl': '3rem',
+    md: '0.75rem',
+    lg: '0.875rem',
+    xl: '1rem',
+    '2xl': '1.125rem',
+    '3xl': '1.5rem',
+    '4xl': '1.875rem',
+    '5xl': '2.25rem',
     '6xl': '3.75rem',
     '7xl': '4.5rem',
-    '8xl': '6rem',
-    '9xl': '8rem',
+  },
+  breakpoints: {
+    sm: '0em',
+    md: '30em',
   },
 });
 
@@ -106,9 +108,11 @@ export default function App() {
     <AppProvider>
       <Document>
         <ChakraProvider theme={theme}>
-          <Stack direction="row" spacing={0} fontSize="sm">
+          <Stack direction={[null, 'column', 'row']} spacing={0} fontSize="md">
             <SideMenu />
-            <Outlet />
+            <Box flexGrow={1} py={3}>
+              <Outlet />
+            </Box>
           </Stack>
           <PlaybackController />
         </ChakraProvider>

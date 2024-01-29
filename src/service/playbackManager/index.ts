@@ -39,21 +39,25 @@ class PlaybackManager {
     // broadcast playback status
     setInterval(() => {
       if (this.status !== 'playing' && this.status === this._lastStatus) return;
-      this.events.emit('updateState', {
-        status: this.status,
-        position:
-          this.playStartPosition +
-          (this.playStartTime
-            ? (new Date().getTime() - this.playStartTime.getTime()) / 1000
-            : 0),
-        duration: this.duration,
-        contentId: this.content?.id,
-      } as PlaybackInfoType);
+      this.broadcastStatus();
       this._lastStatus = this.status;
     }, 1_000);
   }
 
   private _lastStatus?: PlaybackInfoType['status'];
+
+  private broadcastStatus() {
+    this.events.emit('updateState', {
+      status: this.status,
+      position:
+        this.playStartPosition +
+        (this.playStartTime
+          ? (new Date().getTime() - this.playStartTime.getTime()) / 1000
+          : 0),
+      duration: this.duration,
+      contentId: this.content?.id,
+    } as PlaybackInfoType);
+  }
 
   async processQueue() {
     while (this.queue.length > 0) {
@@ -111,6 +115,9 @@ class PlaybackManager {
     }
     if (!this.content || content.id !== this.content?.id) {
       // decode audio
+      this.content = content;
+      this.status = 'decoding';
+      this.broadcastStatus();
       console.time('decode');
       const buffer = await fs.readFile(content.path);
       this._audioBuffer = await audioDecode(buffer);
@@ -141,7 +148,6 @@ class PlaybackManager {
     this.playStartPosition = job.position ?? 0;
     this.duration = this._audioBuffer.duration;
     this.status = 'playing';
-    this.content = content;
 
     speaker.write(Buffer.from(arrayBuffer), (err) => {
       this.events.emit('stopped');

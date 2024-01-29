@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma';
 import { parseFile } from 'music-metadata';
 import { buildAlbums } from './album';
+import { registerPicture } from './picture';
 // for debug
 const entryPoints = ['/Users/110d/Music/Music/Media/Music/Chet Baker/'];
 
@@ -42,11 +43,7 @@ class Seeker {
   }
 
   async registerContent(filepath: string) {
-    console.log('registerContent', filepath);
     const meta = await parseFile(filepath);
-    // meta.common.artists;
-    // meta.common.album;
-    console.log(meta.common);
 
     const metaRecords = {
       title: meta.common.title,
@@ -58,7 +55,14 @@ class Seeker {
       year: meta.common.year,
       genre: meta.common.genre?.join(','),
       comment: meta.common.comment?.join(','),
+      pictureId: null as null | string,
     };
+
+    // picture
+    const picture = await registerPicture(meta);
+    if (picture) {
+      metaRecords.pictureId = picture.id;
+    }
 
     const content = await prisma.content.findUnique({
       where: {
@@ -66,7 +70,7 @@ class Seeker {
       },
     });
     if (content) {
-      console.log('already registered', filepath);
+      // update
       await prisma.content.update({
         where: {
           id: content.id,
@@ -75,16 +79,16 @@ class Seeker {
           ...metaRecords,
         },
       });
-      return;
+    } else {
+      // register new
+      console.log('registerContent', filepath);
+      await prisma.content.create({
+        data: {
+          path: filepath,
+          ...metaRecords,
+        },
+      });
     }
-
-    // register new
-    await prisma.content.create({
-      data: {
-        path: filepath,
-        ...metaRecords,
-      },
-    });
   }
 
   private static listParamsParser = z
