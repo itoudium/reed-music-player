@@ -18,7 +18,6 @@ const axiosClient = axios.create({
 export async function registerPictureByMetadata(
   metadata: IAudioMetadata
 ): Promise<Picture | null> {
-  console.log('registerPicture', metadata.common.picture);
   const rawPicture = selectCover(metadata.common.picture);
   if (!rawPicture) {
     return null;

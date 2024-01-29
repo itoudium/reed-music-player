@@ -66,11 +66,7 @@ class PlaybackManager {
   private broadcastStatus() {
     this.events.emit('updateState', {
       status: this.status,
-      position:
-        this.playStartPosition +
-        (this.playStartTime
-          ? (new Date().getTime() - this.playStartTime.getTime()) / 1000
-          : 0),
+      position: this.mixer.position,
       duration: this.duration,
       contentId: this.content?.id,
     } as PlaybackInfoType);
@@ -148,22 +144,14 @@ class PlaybackManager {
     const positionBytes = this._audioBuffer.length * positionProgress;
     console.log('position: ', positionProgress, positionBytes);
 
-    const audioBuffer = audioBufferUtils.slice(
-      this._audioBuffer,
-      positionBytes
-    );
-
-    const arrayBuffer = PCM.toArrayBuffer(audioBuffer);
+    const arrayBuffer = PCM.toArrayBuffer(this._audioBuffer);
 
     this.playStartTime = new Date();
     this.playStartPosition = job.position ?? 0;
     this.duration = this._audioBuffer.duration;
     this.status = 'playing';
 
-    // speaker.write(Buffer.from(arrayBuffer), (err) => {
-    //   this.events.emit('stopped');
-    // });
-    this.mixer.putAudioBuffer(Buffer.from(arrayBuffer), 0);
+    this.mixer.putAudioBuffer(Buffer.from(arrayBuffer), this.playStartPosition);
   }
 
   private async _stop(_: JobType & { action: 'stop' }) {

@@ -13,6 +13,11 @@ export async function stop() {
   return data;
 }
 
+export async function setVolume(volume: number) {
+  const { data } = await client.post('/api/setVolume', { volume });
+  return data;
+}
+
 type ListContentResult = {
   contents: Content[];
   totalCount: number;

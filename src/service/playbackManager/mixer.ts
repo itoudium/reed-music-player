@@ -5,6 +5,8 @@ export class Mixer extends Readable {
   channels: number;
   sampleRate: number;
   bitDepth: number;
+  buffer = Buffer.alloc(0);
+  currentSamples = 0;
 
   constructor({
     channels,
@@ -21,22 +23,19 @@ export class Mixer extends Readable {
     this.bitDepth = bitDepth;
   }
 
-  buffer = Buffer.alloc(0);
-  offset = 0;
+  /** return current playback position by seconds */
+  get position() {
+    return this.currentSamples / this.sampleRate;
+  }
 
-  putAudioBuffer(buffer: Buffer, offset: number) {
+  putAudioBuffer(buffer: Buffer, startPosition: number) {
     this.buffer = buffer;
-    this.offset = offset;
-    this.currentSamples = 0;
+    this.currentSamples = (startPosition * this.sampleRate) | 0;
   }
 
   clearAudioBuffer() {
     this.buffer = Buffer.alloc(0);
-    this.offset = 0;
-    this.currentSamples = 0;
   }
-
-  currentSamples = 0;
 
   _read(size: number) {
     const sampleSize = this.bitDepth / 8;
@@ -56,6 +55,11 @@ export class Mixer extends Readable {
         const sourceOffset =
           this.currentSamples * sampleSize * this.channels + offset;
 
+        // if source offset is out of range, write 0 (skip)
+        if (sourceOffset >= this.buffer.length) {
+          continue;
+        }
+
         const val =
           (this.buffer.readInt16LE(sourceOffset) * (this.volume / 100)) | 0;
 
@@ -71,11 +75,5 @@ export class Mixer extends Readable {
 
     this.push(buf);
     this.currentSamples += numSamples;
-    console.log(
-      'currentSamples:',
-      this.currentSamples,
-      'time:',
-      this.currentSamples / this.sampleRate
-    );
   }
 }

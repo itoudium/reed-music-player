@@ -43,6 +43,16 @@ class Seeker {
   }
 
   async registerContent(filepath: string) {
+    // if file is already registered, skip
+    const exists = await prisma.content.count({
+      where: {
+        path: filepath,
+      },
+    });
+    if (exists) {
+      return;
+    }
+
     const meta = await parseFile(filepath);
 
     const metaRecords = {

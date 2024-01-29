@@ -2,11 +2,8 @@ import {
   Button,
   Icon,
   Popover,
-  PopoverArrow,
   PopoverBody,
-  PopoverCloseButton,
   PopoverContent,
-  PopoverHeader,
   PopoverTrigger,
   Slider,
   SliderFilledTrack,
@@ -16,7 +13,11 @@ import {
 import React from 'react';
 import { BsVolumeUp } from 'react-icons/bs';
 
-export function VolumeControl() {
+export function VolumeControl({
+  onChangeEnd,
+}: {
+  onChangeEnd: (val: number) => void;
+}) {
   return (
     <Popover trigger="hover">
       <PopoverTrigger>
@@ -29,7 +30,7 @@ export function VolumeControl() {
           <Slider
             defaultValue={30}
             focusThumbOnChange={true}
-            onChangeEnd={(val) => console.log(val)}
+            onChangeEnd={onChangeEnd}
             colorScheme="green"
             orientation="vertical"
           >

@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 import { useAppContext } from '../hooks/AppProvider';
-import { getContent, play, stop } from '../lib/apiClient';
+import { getContent, play, setVolume, stop } from '../lib/apiClient';
 import { Icon } from '@chakra-ui/react';
 import { BsPause } from 'react-icons/bs';
 import { BsPlay } from 'react-icons/bs';
@@ -44,6 +44,10 @@ export function PlaybackController() {
 
   const onClickStop = () => {
     stop();
+  };
+
+  const onChangeVolume = (val: number) => {
+    setVolume(val);
   };
 
   return (
@@ -123,7 +127,7 @@ export function PlaybackController() {
             <SliderThumb />
           </Slider>
           <Box flexShrink={1}>
-            <VolumeControl />
+            <VolumeControl onChangeEnd={(val) => onChangeVolume(val)} />
           </Box>
         </Stack>
       </Box>
