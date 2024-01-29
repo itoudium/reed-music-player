@@ -19,6 +19,7 @@ import { BsSkipForward } from 'react-icons/bs';
 import { BsSkipBackward } from 'react-icons/bs';
 import { secondToDisplayTime } from '../lib/timeUtil';
 import { useAPILoader } from '../hooks/apiLoader';
+import { VolumeControl } from './PlaybackController/VolumeControl';
 
 export function PlaybackController() {
   const { state } = useAppContext();
@@ -61,20 +62,20 @@ export function PlaybackController() {
     >
       <Box maxW="md" m="auto">
         <Stack mb={2} justifyContent="center" textAlign="center" spacing={0}>
-          <Box fontSize="small" color="gray.500">
+          <Box fontSize="sm" color="gray.500">
             {content?.content?.artist || <br />}
           </Box>
-          <Box fontSize="large" fontWeight="bold">
+          <Box fontSize="lg" fontWeight="bold">
             {content?.content?.title || <br />}
           </Box>
-          <Box fontSize="small" color="gray.500">
+          <Box fontSize="sm" color="gray.500">
             {content?.content?.album || <br />}
           </Box>
         </Stack>
 
         <Stack direction="row" justifyContent="center" position="relative">
           <Button variant="ghost">
-            <Icon as={BsSkipBackward} />
+            <Icon as={BsSkipBackward} w={6} h={6} />
           </Button>
           {(state.playbackInfo.status === 'playing' ||
             state.playbackInfo.status === 'decoding') && (
@@ -83,17 +84,17 @@ export function PlaybackController() {
               variant="ghost"
               disabled={state.playbackInfo.status === 'decoding'}
             >
-              <Icon as={BsPause} />
+              <Icon as={BsPause} w={6} h={6} />
             </Button>
           )}
           {(state.playbackInfo.status === 'paused' ||
             state.playbackInfo.status === 'stopped') && (
             <Button onClick={onClickPlay} variant="ghost">
-              <Icon as={BsPlay} />
+              <Icon as={BsPlay} w={6} h={6} />
             </Button>
           )}
           <Button variant="ghost">
-            <Icon as={BsSkipForward} />
+            <Icon as={BsSkipForward} w={6} h={6} />
           </Button>
 
           <Box
@@ -109,7 +110,7 @@ export function PlaybackController() {
           </Box>
         </Stack>
 
-        <Box p={3}>
+        <Stack p={3} direction={'row'}>
           <Slider
             value={sliderPosition}
             focusThumbOnChange={false}
@@ -121,7 +122,10 @@ export function PlaybackController() {
             </SliderTrack>
             <SliderThumb />
           </Slider>
-        </Box>
+          <Box flexShrink={1}>
+            <VolumeControl />
+          </Box>
+        </Stack>
       </Box>
     </Box>
   );

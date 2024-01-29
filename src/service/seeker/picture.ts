@@ -2,8 +2,20 @@ import { Picture } from '@prisma/client';
 import { IAudioMetadata, selectCover } from 'music-metadata';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
+import { url } from 'inspector';
+import axios from 'axios';
 
-export async function registerPicture(
+const REQUEST_INTERVAL = 1_000;
+const sleepInterval = () =>
+  new Promise((resolve) => setTimeout(resolve, REQUEST_INTERVAL));
+
+const axiosClient = axios.create({
+  headers: {
+    'User-Agent': 'reed-seeker 0.0.1',
+  },
+});
+
+export async function registerPictureByMetadata(
   metadata: IAudioMetadata
 ): Promise<Picture | null> {
   console.log('registerPicture', metadata.common.picture);
@@ -36,6 +48,52 @@ export async function registerPicture(
   });
 
   return created;
+}
+
+export async function registerPictureByUrl(
+  url: string
+): Promise<Picture | null> {
+  const buffer = await downloadImage(url);
+  if (!buffer) {
+    return null;
+  }
+
+  // get or create picture type
+  const hash = crypto.createHash('md5').update(buffer).digest('hex');
+  const type = 'image/jpeg';
+
+  const existed = await prisma.picture.findUnique({
+    where: {
+      hash,
+    },
+  });
+
+  if (existed) {
+    return existed;
+  }
+
+  // create
+  const created = await prisma.picture.create({
+    data: {
+      hash,
+      type,
+      data: buffer,
+      size: buffer.length,
+    },
+  });
+
+  return created;
+}
+
+export async function downloadImage(url: string) {
+  try {
+    const res = await axiosClient.get(url, { responseType: 'arraybuffer' });
+    return res.data;
+  } catch (e) {
+    return null;
+  } finally {
+    await sleepInterval();
+  }
 }
 
 export async function getPicture(id: string): Promise<Picture | null> {

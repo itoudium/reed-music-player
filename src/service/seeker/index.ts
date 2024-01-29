@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma';
 import { parseFile } from 'music-metadata';
 import { buildAlbums } from './album';
-import { registerPicture } from './picture';
+import { registerPictureByMetadata } from './picture';
 // for debug
 const entryPoints = ['/Users/110d/Music/Music/Media/Music/Chet Baker/'];
 
@@ -59,7 +59,7 @@ class Seeker {
     };
 
     // picture
-    const picture = await registerPicture(meta);
+    const picture = await registerPictureByMetadata(meta);
     if (picture) {
       metaRecords.pictureId = picture.id;
     }

@@ -3,7 +3,7 @@ import { getPicture } from '../service/seeker/picture';
 
 export const pictureRoute = Router();
 
-pictureRoute.get('/picture/:id', async (req, res) => {
+pictureRoute.get('/pictures/:id', async (req, res) => {
   const pictureId = req.params.id;
   const picture = await getPicture(pictureId);
   if (!picture) {

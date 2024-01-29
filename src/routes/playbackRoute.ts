@@ -25,4 +25,13 @@ route.post('/stop', (req, res, next) => {
   });
 });
 
+route.post('/setVolume', (req, res, next) => {
+  const volume = req.body.volume;
+  playbackManager.setVolume(volume);
+
+  res.json({
+    success: true,
+  });
+});
+
 export const playbackRoute = route;

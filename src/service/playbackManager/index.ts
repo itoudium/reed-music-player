@@ -8,6 +8,8 @@ import { waitForEvent } from '../../utils/events';
 import { PlaybackInfoType } from '../../../types/AppStateType';
 import { prisma } from '../prisma';
 import { Content } from '@prisma/client';
+import { Mixer } from './mixer';
+import { z } from 'zod';
 
 type JobType =
   | {
@@ -24,7 +26,8 @@ class PlaybackManager {
   running = false;
   queue: JobType[] = [];
   events = new EventEmitter();
-  speaker: Speaker | null = null;
+  speaker: Speaker;
+  mixer: Mixer;
   playStartPosition: number = 0;
   playStartTime: Date | null = null;
   content?: Content;
@@ -32,6 +35,20 @@ class PlaybackManager {
   private _audioBuffer?: AudioBuffer;
 
   constructor() {
+    this.speaker = new Speaker({
+      channels: 2,
+      bitDepth: 16,
+      sampleRate: 44100,
+    });
+
+    this.mixer = new Mixer({
+      channels: 2,
+      bitDepth: 16,
+      sampleRate: 44100,
+    });
+
+    this.mixer.pipe(this.speaker);
+
     this.events.on('added', () => {
       this.processQueue();
     });
@@ -102,9 +119,8 @@ class PlaybackManager {
   }
 
   private async _play(job: JobType & { action: 'play' }) {
-    if (this.speaker) {
-      this.speaker.close(false);
-    }
+    this.mixer.clearAudioBuffer();
+
     const content = await prisma.content.findUnique({
       where: {
         id: job.contentId,
@@ -136,11 +152,6 @@ class PlaybackManager {
       this._audioBuffer,
       positionBytes
     );
-    const speaker = (this.speaker = new Speaker({
-      channels: 2,
-      bitDepth: 16,
-      sampleRate: 44100,
-    }));
 
     const arrayBuffer = PCM.toArrayBuffer(audioBuffer);
 
@@ -149,16 +160,18 @@ class PlaybackManager {
     this.duration = this._audioBuffer.duration;
     this.status = 'playing';
 
-    speaker.write(Buffer.from(arrayBuffer), (err) => {
-      this.events.emit('stopped');
-    });
+    // speaker.write(Buffer.from(arrayBuffer), (err) => {
+    //   this.events.emit('stopped');
+    // });
+    this.mixer.putAudioBuffer(Buffer.from(arrayBuffer), 0);
   }
 
   private async _stop(_: JobType & { action: 'stop' }) {
-    if (!this.speaker) return;
+    // if (!this.speaker) return;
+    // this.speaker.close(false);
+    // this.speaker = null;
+    this.mixer.clearAudioBuffer();
 
-    this.speaker.close(false);
-    this.speaker = null;
     this.status = 'stopped';
     // save current position to playStartPosition
     this.playStartPosition = this.playStartTime
@@ -168,6 +181,11 @@ class PlaybackManager {
 
     await waitForEvent(this.events, 'stopped');
     console.log('stopped');
+  }
+
+  setVolume(volume: number) {
+    const parsed = z.number().max(100).min(0).parse(volume);
+    this.mixer.volume = parsed;
   }
 }
 

@@ -82,7 +82,7 @@ export function SideMenu() {
 
 export function SideMenuContent() {
   return (
-    <Stack spacing={5}>
+    <Stack spacing={5} fontSize={'lg'}>
       <Link to="/" as={RemixLink}>
         Home
       </Link>
