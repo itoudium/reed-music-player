@@ -46,7 +46,7 @@ model Artist {
   updatedAt DateTime @updatedAt
 
   // relations
-  albums Album[]
+  albums ArtistsOnAlbums[]
 
   contents ArtistsOnContents[]
 }
@@ -60,16 +60,21 @@ model ArtistsOnContents {
 
   @@id([artistId, contentId])
 }
+
+model ArtistsOnAlbums {
+  artistId String
+  albumId String
+
+  artistModel Artist @relation(fields: [artistId], references: [id])
+  albumModel Album @relation(fields: [albumId], references: [id])
+
+  @@id([artistId, albumId])
+}
 model Album {
   id   String @id @default(uuid())
   name String
   albumArtist String?
   albumPath String?
-
-  artistId String?
-  artistModel   Artist?  @relation(fields: [artistId], references: [id])
-
-  contents Content[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,6 +82,8 @@ model Album {
   pictureId String?
   pictureModel Picture? @relation(fields: [pictureId], references: [id])
 
+  contents Content[]
+  artists ArtistsOnAlbums[]
   @@unique([name, albumArtist])
 }
 

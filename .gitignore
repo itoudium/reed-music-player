@@ -121,4 +121,4 @@ public/build/
 build/
 
 # sqlite
-prisma/data/*.db
+prisma/data/*.db*
