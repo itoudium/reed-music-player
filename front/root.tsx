@@ -19,8 +19,8 @@ import { extendTheme } from '@chakra-ui/react';
 
 const theme = extendTheme({
   fontSizes: {
-    xs: '0.63rem',
-    sm: '0.75rem',
+    xs: '0.60rem',
+    sm: '0.70rem',
     md: '0.75rem',
     lg: '0.875rem',
     xl: '1rem',
@@ -38,10 +38,11 @@ const theme = extendTheme({
 });
 
 export const meta: MetaFunction = () => [
+  { charset: 'utf-8' },
+  { title: 'reed' },
   {
-    charset: 'utf-8',
-    title: 'reed',
-    viewport: 'width=device-width,initial-scale=1',
+    name: 'viewport',
+    content: 'width=device-width,initial-scale=1',
   },
 ];
 
