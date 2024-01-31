@@ -10,14 +10,25 @@ import {
   SliderThumb,
   SliderTrack,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BsVolumeUp } from 'react-icons/bs';
 
 export function VolumeControl({
   onChangeEnd,
+  value,
 }: {
   onChangeEnd: (val: number) => void;
+  value: number;
 }) {
+  const [lock, setLock] = React.useState(false);
+  const [lockValue, setLockValue] = React.useState(value);
+
+  React.useEffect(() => {
+    if (!lock) {
+      setLockValue(value);
+    }
+  }, [value]);
+
   return (
     <Popover trigger="hover">
       <PopoverTrigger>
@@ -28,9 +39,14 @@ export function VolumeControl({
       <PopoverContent w={10}>
         <PopoverBody h={28} w={10}>
           <Slider
-            defaultValue={30}
+            value={lockValue}
             focusThumbOnChange={true}
-            onChangeEnd={onChangeEnd}
+            onChangeStart={() => setLock(true)}
+            onChange={(v) => setLockValue(v)}
+            onChangeEnd={(v) => {
+              setLock(false);
+              onChangeEnd(v);
+            }}
             colorScheme="green"
             orientation="vertical"
           >

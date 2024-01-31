@@ -82,18 +82,26 @@ export function SideMenu() {
 
 export function SideMenuContent() {
   return (
-    <Stack spacing={5} fontSize={'lg'}>
-      <Link to="/" as={RemixLink}>
-        Home
-      </Link>
-      <Link to="/albums" as={RemixLink}>
-        <Icon as={BsMusicNoteBeamed} mr={2} />
-        Album
-      </Link>
-      <Link to="/artists" as={RemixLink}>
-        <Icon as={BsPersonLinesFill} mr={2} />
-        Artist
-      </Link>
+    <Stack justifyContent={'space-between'} h="100%" pb={52}>
+      <Stack spacing={5} fontSize={'lg'}>
+        <Link to="/" as={RemixLink}>
+          Home
+        </Link>
+        <Link to="/albums" as={RemixLink}>
+          <Icon as={BsMusicNoteBeamed} mr={2} />
+          Album
+        </Link>
+        <Link to="/artists" as={RemixLink}>
+          <Icon as={BsPersonLinesFill} mr={2} />
+          Artist
+        </Link>
+      </Stack>
+
+      <Stack spacing={5} fontSize={'lg'}>
+        <Link to="/setting" as={RemixLink}>
+          Setting
+        </Link>
+      </Stack>
     </Stack>
   );
 }

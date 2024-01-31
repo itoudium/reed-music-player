@@ -2,7 +2,6 @@ import audioDecode from 'audio-decode';
 import fs from 'fs/promises';
 import Speaker from 'speaker';
 import PCM from 'pcm-util';
-import audioBufferUtils from 'audio-buffer-utils';
 import EventEmitter from 'events';
 import { waitForEvent } from '../../utils/events';
 import { PlaybackInfoType } from '../../../types/AppStateType';
@@ -10,6 +9,7 @@ import { prisma } from '../prisma';
 import { Content } from '@prisma/client';
 import { Mixer } from './mixer';
 import { z } from 'zod';
+import { getSetting, setSetting } from '../settings';
 
 type JobType =
   | {
@@ -47,6 +47,10 @@ class PlaybackManager {
       sampleRate: 44100,
     });
 
+    getSetting('volume').then((volume) => {
+      volume && this.setVolume(parseInt(volume), false);
+    });
+
     this.mixer.pipe(this.speaker);
 
     this.events.on('added', () => {
@@ -69,6 +73,7 @@ class PlaybackManager {
       position: this.mixer.position,
       duration: this.duration,
       contentId: this.content?.id,
+      volume: this.mixer.volume,
     } as PlaybackInfoType);
   }
 
@@ -171,9 +176,13 @@ class PlaybackManager {
     console.log('stopped');
   }
 
-  setVolume(volume: number) {
+  setVolume(volume: number, save = true) {
     const parsed = z.number().max(100).min(0).parse(volume);
     this.mixer.volume = parsed;
+
+    if (save) {
+      setSetting('volume', parsed.toString());
+    }
   }
 }
 

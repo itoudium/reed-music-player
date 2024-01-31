@@ -127,7 +127,10 @@ export function PlaybackController() {
             <SliderThumb />
           </Slider>
           <Box flexShrink={1}>
-            <VolumeControl onChangeEnd={(val) => onChangeVolume(val)} />
+            <VolumeControl
+              onChangeEnd={onChangeVolume}
+              value={state.playbackInfo.volume}
+            />
           </Box>
         </Stack>
       </Box>

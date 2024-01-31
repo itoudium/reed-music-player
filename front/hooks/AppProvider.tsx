@@ -1,18 +1,19 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { socket } from "../lib/socket";
-import { AppStateType } from "../../types/AppStateType";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { socket } from '../lib/socket';
+import { AppStateType } from '../../types/AppStateType';
 
 type AppState = {
   state: AppStateType;
   isConnected: boolean;
-}
+};
 
 function useApp(): AppState {
   const [isConnected, setIsConnected] = useState(socket?.connected ?? false);
   const [state, setState] = useState<AppStateType>({
     playbackInfo: {
       status: 'stopped',
-    }
+      volume: 100,
+    },
   });
   useEffect(() => {
     function onConnect() {
@@ -25,10 +26,10 @@ function useApp(): AppState {
 
     socket?.on('connect', onConnect);
     socket?.on('disconnect', onDisconnect);
-    socket?.on('updateState', state => {
+    socket?.on('updateState', (state) => {
       console.log(state);
       setState(state);
-    })
+    });
 
     return () => {
       socket?.off('connect', onConnect);
@@ -39,21 +40,17 @@ function useApp(): AppState {
   return {
     state,
     isConnected,
-  }
+  };
 }
 
-const context = createContext<ReturnType<typeof useApp>>(undefined as unknown as ReturnType<typeof useApp>);
+const context = createContext<ReturnType<typeof useApp>>(
+  undefined as unknown as ReturnType<typeof useApp>
+);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const appValue = useApp();
 
-  return (
-    <context.Provider value={appValue}>
-      {
-        children
-      }
-    </context.Provider>
-  )
+  return <context.Provider value={appValue}>{children}</context.Provider>;
 }
 
 export function useAppContext() {

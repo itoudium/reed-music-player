@@ -3,6 +3,7 @@ export type PlaybackInfoType = {
   contentId?: string;
   position?: number;
   duration?: number;
+  volume: number;
 };
 
 export type AppStateType = {

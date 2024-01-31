@@ -5,8 +5,7 @@ import { prisma } from '../prisma';
 import { parseFile } from 'music-metadata';
 import { buildAlbums } from './album';
 import { registerPictureByMetadata } from './picture';
-// for debug
-const entryPoints = ['/Users/110d/Music/Music/Media/Music/Chet Baker/'];
+import { SeekerTarget } from '@prisma/client';
 
 /**
  * seeker は、entryPoints に書かれたディレクトリを再帰的に探索し、音楽ファイルを見つけ出し、コンテンツテーブルに登録します。
@@ -18,11 +17,45 @@ class Seeker {
   }
 
   async seek() {
-    for (const p of entryPoints) {
-      await this.seekPath(p);
+    const entryPoints = await prisma.seekerTarget.findMany();
+    for (const ep of entryPoints) {
+      await this.seekFromEntryPoint(ep);
     }
 
     await buildAlbums();
+  }
+
+  async seekFromEntryPoint(entryPoint: SeekerTarget) {
+    if (entryPoint.lastSeekFinishedAt) {
+      return;
+    }
+
+    // set startedAt
+    await prisma.seekerTarget.update({
+      where: {
+        id: entryPoint.id,
+      },
+      data: {
+        lastSeekStartedAt: new Date(),
+      },
+    });
+
+    try {
+      await this.seekPath(entryPoint.path);
+    } catch (e) {
+      console.error(e);
+      // TODO loggin error
+    }
+
+    // set lastSeekFinishedAt
+    await prisma.seekerTarget.update({
+      where: {
+        id: entryPoint.id,
+      },
+      data: {
+        lastSeekFinishedAt: new Date(),
+      },
+    });
   }
 
   async seekPath(p: string) {
