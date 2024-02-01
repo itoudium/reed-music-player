@@ -20,6 +20,7 @@ import { BsSkipBackward } from 'react-icons/bs';
 import { secondToDisplayTime } from '../lib/timeUtil';
 import { useAPILoader } from '../hooks/apiLoader';
 import { VolumeControl } from './PlaybackController/VolumeControl';
+import { PositionControl } from './PlaybackController/PositionControl';
 
 export function PlaybackController() {
   const { state } = useAppContext();
@@ -29,10 +30,6 @@ export function PlaybackController() {
       ? getContent({ id: state.playbackInfo.contentId })
       : null;
   }, [state.playbackInfo.contentId]);
-
-  const sliderPosition = state.playbackInfo.position
-    ? (state.playbackInfo.position / (state.playbackInfo.duration ?? 0)) * 100
-    : 0;
 
   const onClickPlay = () => {
     if (!state.playbackInfo.contentId) return;
@@ -100,32 +97,22 @@ export function PlaybackController() {
           <Button variant="ghost">
             <Icon as={BsSkipForward} w={6} h={6} />
           </Button>
+        </Stack>
 
+        <Stack p={3} direction={'row'} position="relative">
           <Box
             textAlign="center"
             fontSize="xs"
             color="gray.500"
             position="absolute"
-            right={10}
-            bottom={3}
+            left="50%"
+            transform="translateX(-50%)"
+            bottom={2}
           >
             {secondToDisplayTime(state.playbackInfo.position)} /{' '}
             {secondToDisplayTime(state.playbackInfo.duration)}
           </Box>
-        </Stack>
-
-        <Stack p={3} direction={'row'}>
-          <Slider
-            value={sliderPosition}
-            focusThumbOnChange={false}
-            onChangeEnd={(val) => console.log(val)}
-            colorScheme="green"
-          >
-            <SliderTrack>
-              <SliderFilledTrack />
-            </SliderTrack>
-            <SliderThumb />
-          </Slider>
+          <PositionControl />
           <Box flexShrink={1}>
             <VolumeControl
               onChangeEnd={onChangeVolume}

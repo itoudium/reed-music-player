@@ -5,8 +5,13 @@ import { BsPlay } from 'react-icons/bs';
 import { play } from '../../lib/apiClient';
 import { useAppContext } from '../../hooks/AppProvider';
 import { secondToDisplayTime } from '../../lib/timeUtil';
+import { SerializeFrom } from '@remix-run/node';
 
-export function ContentListItem({ content }: { content: Content }) {
+export function ContentListItem({
+  content,
+}: {
+  content: SerializeFrom<Content>;
+}) {
   const { state } = useAppContext();
 
   const onClickPlay = () => {
@@ -43,7 +48,7 @@ export function ContentListItem({ content }: { content: Content }) {
       )}
       <Stack direction="row" justifyContent="space-between">
         <Box>{content.title}</Box>
-        <Box>{secondToDisplayTime(content.duration)}</Box>
+        <Box color="gray.500">{secondToDisplayTime(content.duration)}</Box>
       </Stack>
     </Box>
   );

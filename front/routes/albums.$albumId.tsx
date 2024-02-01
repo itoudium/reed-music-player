@@ -1,14 +1,35 @@
-import { Container } from '@chakra-ui/react';
-import { useParams } from '@remix-run/react';
+import { Box, Container, Spacer } from '@chakra-ui/react';
+import { useLoaderData } from '@remix-run/react';
 import React from 'react';
-import { AlbumContentsList } from '../components/Explorer/AlbumContentsList';
+import { LoaderFunctionArgs, json } from '@remix-run/node';
+import {
+  ListContentsByAlbum,
+  getAlbum,
+  listArtistsByAlbum,
+} from '../lib/bridge.server';
+import { AlbumInfo } from '../components/Explorer/AlbumInfo';
+import { ContentList } from '../components/Explorer/ContentList';
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  const { albumId } = params;
+
+  const album = await getAlbum(albumId!);
+  const contents = await ListContentsByAlbum(albumId!);
+  const artists = await listArtistsByAlbum(albumId!, album?.albumArtist ?? '');
+
+  return json({ album, contents, artists });
+}
 
 export default function AlbumPage() {
-  const { albumId } = useParams();
+  const { album, contents, artists } = useLoaderData<typeof loader>();
+
+  if (!album || !contents) return <Box>Album not found</Box>;
 
   return (
     <Container>
-      <AlbumContentsList albumId={albumId ?? ''} />
+      <AlbumInfo album={album} artists={artists} />
+      <Spacer my={3} />
+      <ContentList contents={contents} />
     </Container>
   );
 }

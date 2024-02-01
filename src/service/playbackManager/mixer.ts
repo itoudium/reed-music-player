@@ -1,12 +1,14 @@
 import { Readable } from 'stream';
+import { EventEmitter } from 'events';
 
 export class Mixer extends Readable {
   volume: number = 100;
   channels: number;
   sampleRate: number;
   bitDepth: number;
-  buffer = Buffer.alloc(0);
+  buffer: Buffer | null = null;
   currentSamples = 0;
+  events: EventEmitter = new EventEmitter();
 
   constructor({
     channels,
@@ -28,13 +30,23 @@ export class Mixer extends Readable {
     return this.currentSamples / this.sampleRate;
   }
 
+  get isPlaying() {
+    return !!this.buffer;
+  }
+
   putAudioBuffer(buffer: Buffer, startPosition: number) {
     this.buffer = buffer;
     this.currentSamples = (startPosition * this.sampleRate) | 0;
   }
 
   clearAudioBuffer() {
-    this.buffer = Buffer.alloc(0);
+    this.buffer = null;
+  }
+
+  private onFinished() {
+    this.currentSamples = 0;
+    this.clearAudioBuffer();
+    this.events.emit('finished');
   }
 
   _read(size: number) {
@@ -57,7 +69,9 @@ export class Mixer extends Readable {
 
         // if source offset is out of range, write 0 (skip)
         if (sourceOffset >= this.buffer.length) {
-          continue;
+          this.push(buf);
+          this.onFinished();
+          return;
         }
 
         const val =

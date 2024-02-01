@@ -32,7 +32,7 @@ class PlaybackManager {
   playStartTime: Date | null = null;
   content?: Content;
   duration: number = 0;
-  private _audioBuffer?: AudioBuffer;
+  private _audioArrayBuffer: Uint8Array | null = null;
 
   constructor() {
     this.speaker = new Speaker({
@@ -63,6 +63,11 @@ class PlaybackManager {
       this.broadcastStatus();
       this._lastStatus = this.status;
     }, 1_000);
+
+    this.mixer.events.on('finished', () => {
+      this.status = 'stopped';
+      this.broadcastStatus();
+    });
   }
 
   private _lastStatus?: PlaybackInfoType['status'];
@@ -115,8 +120,6 @@ class PlaybackManager {
     this.addJob({
       action: 'stop',
     });
-
-    this.events.on;
   }
 
   private async _play(job: JobType & { action: 'play' }) {
@@ -137,32 +140,25 @@ class PlaybackManager {
       this.broadcastStatus();
       console.time('decode');
       const buffer = await fs.readFile(content.path);
-      this._audioBuffer = await audioDecode(buffer);
+      const audioBuffer = await audioDecode(buffer);
+      this.duration = audioBuffer.duration;
+      this._audioArrayBuffer = PCM.toArrayBuffer(audioBuffer);
       console.timeEnd('decode');
     }
 
-    if (!this._audioBuffer) throw new Error('audioBuffer not found');
-
-    console.log('length:', this._audioBuffer.length);
-    console.log('duration:', this._audioBuffer.duration);
-    const positionProgress = job.position ?? 0 / this._audioBuffer.duration;
-    const positionBytes = this._audioBuffer.length * positionProgress;
-    console.log('position: ', positionProgress, positionBytes);
-
-    const arrayBuffer = PCM.toArrayBuffer(this._audioBuffer);
+    if (!this._audioArrayBuffer) throw new Error('audioBuffer not found');
 
     this.playStartTime = new Date();
     this.playStartPosition = job.position ?? 0;
-    this.duration = this._audioBuffer.duration;
     this.status = 'playing';
 
-    this.mixer.putAudioBuffer(Buffer.from(arrayBuffer), this.playStartPosition);
+    this.mixer.putAudioBuffer(
+      Buffer.from(this._audioArrayBuffer),
+      this.playStartPosition
+    );
   }
 
   private async _stop(_: JobType & { action: 'stop' }) {
-    // if (!this.speaker) return;
-    // this.speaker.close(false);
-    // this.speaker = null;
     this.mixer.clearAudioBuffer();
 
     this.status = 'stopped';
@@ -172,7 +168,6 @@ class PlaybackManager {
       : 0;
     this.playStartTime = null;
 
-    await waitForEvent(this.events, 'stopped');
     console.log('stopped');
   }
 

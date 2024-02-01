@@ -4,14 +4,15 @@ import { Link as RemixLink } from '@remix-run/react';
 import React from 'react';
 import { BsMusicNote } from 'react-icons/bs';
 import { AlbumArtwork } from '../AlbumArtwork';
+import { SerializeFrom } from '@remix-run/node';
 
-export function AlbumListItem({ album }: { album: Album }) {
+export function AlbumListItem({ album }: { album: SerializeFrom<Album> }) {
   return (
     <Link to={`/albums/${album.id}`} as={RemixLink}>
       <Box>
         <AlbumArtwork album={album} size={20} />
-        <Box fontSize="small">{album.name}</Box>
-        <Box fontSize="small" color="gray.500">
+        <Box fontSize="sm">{album.name}</Box>
+        <Box fontSize="sm" color="gray.500">
           {album.albumArtist}
         </Box>
       </Box>

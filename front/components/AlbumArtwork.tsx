@@ -1,5 +1,6 @@
 import { Image, Box, Icon } from '@chakra-ui/react';
 import { Album } from '@prisma/client';
+import { SerializeFrom } from '@remix-run/node';
 import React from 'react';
 import { BsMusicNote } from 'react-icons/bs';
 
@@ -7,7 +8,7 @@ export function AlbumArtwork({
   album,
   size,
 }: {
-  album: Album;
+  album: SerializeFrom<Album>;
   size: number | string;
 }) {
   return (

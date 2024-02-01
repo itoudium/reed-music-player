@@ -45,3 +45,35 @@ export async function setSetting(key: string, value: string) {
     });
   }
 }
+
+export async function listSeekerTargets() {
+  const targets = await prisma.seekerTarget.findMany();
+
+  return targets;
+}
+
+export async function deleteSeekerTarget(id: string) {
+  await prisma.seekerTarget.delete({
+    where: {
+      id,
+    },
+  });
+}
+
+export async function createSeekerTarget(path: string) {
+  await prisma.seekerTarget.create({
+    data: {
+      path,
+    },
+  });
+}
+
+export async function getSeekerTarget(id: string) {
+  const target = await prisma.seekerTarget.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  return target;
+}

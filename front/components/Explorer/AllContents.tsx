@@ -14,7 +14,7 @@ export function AllContents() {
   }
 
   return (
-    <Box mb="200px">
+    <Box>
       <ContentList contents={data.contents} />
     </Box>
   );

@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Container,
+  FormErrorMessage,
   Heading,
   Input,
   Modal,
@@ -16,42 +17,41 @@ import {
 } from '@chakra-ui/react';
 import { ActionFunctionArgs, SerializeFrom, json } from '@remix-run/node';
 import React from 'react';
-import { prisma } from '../../src/service/prisma';
 import { SeekerTarget } from '@prisma/client';
-import { Form, useLoaderData } from '@remix-run/react';
+import {
+  ClientActionFunctionArgs,
+  Form,
+  useLoaderData,
+} from '@remix-run/react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { serverSettings } from '../lib/bridge.server';
+import { DeleteIcon, RepeatIcon } from '@chakra-ui/icons';
+import { startScan } from '../lib/apiClient';
 dayjs.extend(relativeTime);
 
 export async function loader() {
-  const seekerTargets = await prisma.seekerTarget.findMany();
+  const seekerTargets = await serverSettings.listSeekerTargets();
   return json({
     seekerTargets,
   });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  console.log(request);
   const body = await request.formData();
   switch (body.get('_action')) {
     case 'deleteSeekerTarget': {
       const id = body.get('id');
       if (id) {
-        await prisma.seekerTarget.delete({
-          where: {
-            id: id.toString(),
-          },
-        });
+        await serverSettings.deleteSeekerTarget(id.toString());
       }
       break;
     }
-    case 'addSeekerEntryPoint': {
+    case 'createSeekerTarget': {
       const path = body.get('path');
       if (path) {
-        await prisma.seekerTarget.create({
-          data: {
-            path: path.toString(),
-          },
-        });
+        await serverSettings.createSeekerTarget(path.toString());
       }
       break;
     }
@@ -60,6 +60,21 @@ export async function action({ request }: ActionFunctionArgs) {
     message: 'ok',
   });
 }
+
+export const clientAction = async ({
+  request,
+  serverAction,
+}: ClientActionFunctionArgs) => {
+  console.log(request);
+  const body = await request.formData();
+
+  // console.log(body.get('_action'));
+  if (body.get('_action') === 'startScan') {
+    await startScan({ id: body.get('id')?.toString() ?? '' });
+  }
+
+  return null;
+};
 
 export default function SettingHome() {
   const data = useLoaderData<typeof loader>();
@@ -117,6 +132,11 @@ function SeekerTargets({
             <Box flexGrow={2}>
               <Box>{seekerTarget.path}</Box>
               <Box>
+                {!!seekerTarget.error && (
+                  <FormErrorMessage>{seekerTarget.error}</FormErrorMessage>
+                )}
+              </Box>
+              <Box>
                 {!!seekerTarget.lastSeekFinishedAt && (
                   <Box>
                     Last scan finished at:{' '}
@@ -133,14 +153,22 @@ function SeekerTargets({
             </Box>
 
             <Form method="post">
+              <input type="hidden" name="id" value={seekerTarget.id} />
+              <Button
+                type="submit"
+                variant="ghost"
+                name="_action"
+                value="startScan"
+              >
+                <RepeatIcon />
+              </Button>
               <Button
                 type="submit"
                 variant="ghost"
                 name="_action"
                 value="deleteSeekerTarget"
               >
-                <input type="hidden" name="id" value={seekerTarget.id} />
-                Delete
+                <DeleteIcon />
               </Button>
             </Form>
           </Stack>
@@ -157,11 +185,7 @@ function SeekerTargets({
             <Form method="post" onSubmit={() => onClose()}>
               <Stack direction={'row'}>
                 <Input type="text" name="path" placeholder="Path" required />
-                <Button
-                  type="submit"
-                  name="_action"
-                  value="addSeekerEntryPoint"
-                >
+                <Button type="submit" name="_action" value="createSeekerTarget">
                   Add
                 </Button>
               </Stack>

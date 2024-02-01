@@ -1,27 +1,26 @@
 import React from 'react';
 import { Container, Heading } from '@chakra-ui/react';
-import { AlbumList } from '../components/Explorer/AlbumList';
-import { listAllAlbums } from '../lib/bridge.server';
+import { ArtistList } from '../components/Explorer/ArtistList';
 import { json } from '@remix-run/node';
+import { listArtists } from '../lib/bridge.server';
 import { useLoaderData } from '@remix-run/react';
 
 export async function loader() {
-  const albums = await listAllAlbums();
+  const artists = await listArtists();
 
   return json({
-    albums,
+    artists,
   });
 }
 
-export default function Albums() {
-  const { albums } = useLoaderData<typeof loader>();
-
+export default function Artists() {
+  const { artists } = useLoaderData<typeof loader>();
   return (
     <Container>
       <Heading size="md" my={8}>
-        Albums
+        Artists
       </Heading>
-      <AlbumList albums={albums} />
+      <ArtistList artists={artists} />
     </Container>
   );
 }

@@ -3,54 +3,60 @@ import path from 'path';
 import { z } from 'zod';
 import { prisma } from '../prisma';
 import { parseFile } from 'music-metadata';
-import { buildAlbums } from './album';
+import { buildAlbums, updateAlbumMetadata, registerAlbum } from './album';
 import { registerPictureByMetadata } from './picture';
-import { SeekerTarget } from '@prisma/client';
+import { Content, SeekerTarget } from '@prisma/client';
+
+const TARGET_EXT = new Set(['.mp3']);
 
 /**
  * seeker は、entryPoints に書かれたディレクトリを再帰的に探索し、音楽ファイルを見つけ出し、コンテンツテーブルに登録します。
  * また、コンテンツテーブルとの不整合を修正します。
  */
 class Seeker {
-  constructor() {
-    this.seek();
-  }
+  constructor() {}
 
-  async seek() {
+  async startFullScan() {
     const entryPoints = await prisma.seekerTarget.findMany();
     for (const ep of entryPoints) {
-      await this.seekFromEntryPoint(ep);
+      await this.startScanByTarget(ep);
     }
 
     await buildAlbums();
   }
 
-  async seekFromEntryPoint(entryPoint: SeekerTarget) {
-    if (entryPoint.lastSeekFinishedAt) {
-      return;
-    }
-
+  async startScanByTarget(target: SeekerTarget) {
     // set startedAt
     await prisma.seekerTarget.update({
       where: {
-        id: entryPoint.id,
+        id: target.id,
       },
       data: {
         lastSeekStartedAt: new Date(),
+        lastSeekFinishedAt: null,
+        error: null,
       },
     });
 
     try {
-      await this.seekPath(entryPoint.path);
-    } catch (e) {
+      const filePaths = await this.seekPath(target.path);
+      await this.registerFiles(filePaths);
+    } catch (e: any) {
       console.error(e);
-      // TODO loggin error
+      await prisma.seekerTarget.update({
+        where: {
+          id: target.id,
+        },
+        data: {
+          error: e.message ?? 'unknown error',
+        },
+      });
     }
 
     // set lastSeekFinishedAt
     await prisma.seekerTarget.update({
       where: {
-        id: entryPoint.id,
+        id: target.id,
       },
       data: {
         lastSeekFinishedAt: new Date(),
@@ -58,32 +64,66 @@ class Seeker {
     });
   }
 
-  async seekPath(p: string) {
-    console.log('seekPath', p);
-
+  private async seekPath(p: string): Promise<string[]> {
+    const filePaths: string[] = [];
     const files = await fs.readdir(p);
     for (const file of files) {
       const filepath = path.join(p, file);
       const s = await fs.stat(filepath);
       if (s.isDirectory()) {
-        await this.seekPath(filepath);
+        const result = await this.seekPath(filepath);
+        filePaths.push(...result);
       } else if (s.isFile()) {
-        if (file.match(/\.mp3$/)) {
-          await this.registerContent(filepath);
+        if (!TARGET_EXT.has(path.extname(filepath))) {
+          continue;
+        }
+        filePaths.push(filepath);
+      }
+    }
+
+    return filePaths;
+  }
+
+  private async registerFiles(filePaths: string[]) {
+    const grouped = this.groupByDirectory(filePaths);
+    for (const dir in grouped) {
+      const files = grouped[dir];
+      const contents: Content[] = [];
+      for (const file of files) {
+        const c = await this.registerContent(file);
+        if (c) {
+          contents.push(c);
         }
       }
+      const album = await registerAlbum(dir, contents);
+      album && (await updateAlbumMetadata(album));
     }
   }
 
-  async registerContent(filepath: string) {
+  private groupByDirectory(filePaths: string[]): { [key: string]: string[] } {
+    // group by directory
+    return filePaths.reduce(
+      (acc, cur) => {
+        const dir = path.dirname(cur);
+        if (!acc[dir]) {
+          acc[dir] = [];
+        }
+        acc[dir].push(cur);
+        return acc;
+      },
+      {} as { [key: string]: string[] }
+    );
+  }
+
+  async registerContent(filepath: string): Promise<Content | null> {
     // if file is already registered, skip
-    const exists = await prisma.content.count({
+    const existed = await prisma.content.findUnique({
       where: {
         path: filepath,
       },
     });
-    if (exists) {
-      return;
+    if (existed) {
+      return existed;
     }
 
     const meta = await parseFile(filepath);
@@ -107,31 +147,16 @@ class Seeker {
       metaRecords.pictureId = picture.id;
     }
 
-    const content = await prisma.content.findUnique({
-      where: {
+    // register new
+    console.log('registerContent', filepath);
+    const created = await prisma.content.create({
+      data: {
         path: filepath,
+        ...metaRecords,
       },
     });
-    if (content) {
-      // update
-      await prisma.content.update({
-        where: {
-          id: content.id,
-        },
-        data: {
-          ...metaRecords,
-        },
-      });
-    } else {
-      // register new
-      console.log('registerContent', filepath);
-      await prisma.content.create({
-        data: {
-          path: filepath,
-          ...metaRecords,
-        },
-      });
-    }
+
+    return created;
   }
 
   private static listParamsParser = z
@@ -214,6 +239,40 @@ class Seeker {
 
     return album;
   }
+
+  async listArtists(params: { limit?: number; offset?: number }) {
+    const artists = await prisma.artist.findMany({
+      take: params.limit,
+      skip: params.offset,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const totalCount = await prisma.artist.count();
+
+    return {
+      artists: artists,
+      totalCount: totalCount,
+    };
+  }
+
+  async getArtist(id: string) {
+    const artist = await prisma.artist.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    return artist;
+  }
 }
 
-export const seeker = new Seeker();
+let _seeker: Seeker | null = null;
+export function getSeeker() {
+  if (!_seeker) {
+    _seeker = new Seeker();
+    return _seeker;
+  }
+  return _seeker;
+}

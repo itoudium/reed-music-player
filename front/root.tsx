@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { withEmotionCache } from '@emotion/react';
-import { Box, ChakraProvider, Stack } from '@chakra-ui/react';
+import { Box, ChakraProvider, Spacer, Stack } from '@chakra-ui/react';
 import {
   Links,
   LiveReload,
@@ -113,6 +113,7 @@ export default function App() {
             <SideMenu />
             <Box flexGrow={1} py={3}>
               <Outlet />
+              <Spacer h={64} />
             </Box>
           </Stack>
           <PlaybackController />

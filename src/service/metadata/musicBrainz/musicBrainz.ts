@@ -1,16 +1,10 @@
-import axios, { AxiosError, isAxiosError } from 'axios';
 import { IMetadataSource, SearchAlbumResult } from '../IMetadataSource';
 import { Album, Content } from '@prisma/client';
 import { mb_ReleaseImageResultType, mb_SearchReleaseResultType } from './types';
 import path from 'path';
+import { httpClient } from '../../../utils/httpClient';
 
-const client = axios.create({
-  headers: {
-    'User-Agent': 'reed-seeker 0.0.1',
-    Accept: 'application/json',
-  },
-  baseURL: 'https://musicbrainz.org/ws/2',
-});
+const musicBrainzBaseUrl = 'https://musicbrainz.org/ws/2';
 
 const REQUEST_INTERVAL = 1_000;
 const sleepInterval = () =>
@@ -18,8 +12,9 @@ const sleepInterval = () =>
 
 async function searchArtist(name: string) {
   try {
-    const res = await client.get(
-      `/artist/?limit=5&query=artist:${encodeURIComponent(name)}`
+    const res = await httpClient.get(
+      musicBrainzBaseUrl +
+        `/artist/?limit=5&query=artist:${encodeURIComponent(name)}`
     );
     return res;
   } finally {
@@ -48,8 +43,8 @@ async function searchRelease(params: {
   console.log('searchRelease', q);
 
   try {
-    const res = await client.get<mb_SearchReleaseResultType>(
-      `/release/?limit=5&query=${encodeURIComponent(q)}`
+    const res = await httpClient.get<mb_SearchReleaseResultType>(
+      musicBrainzBaseUrl + `/release/?limit=5&query=${encodeURIComponent(q)}`
     );
     return res.data;
   } finally {
@@ -59,7 +54,7 @@ async function searchRelease(params: {
 
 async function getCoverArt(releaseId: string) {
   try {
-    const res = await client.get<mb_ReleaseImageResultType>(
+    const res = await httpClient.get<mb_ReleaseImageResultType>(
       `http://coverartarchive.org/release/${releaseId}`
     );
     return res.data;
@@ -70,6 +65,7 @@ async function getCoverArt(releaseId: string) {
 }
 
 export class MusicBrainzMetadataSource implements IMetadataSource {
+  name = 'musicBrainz';
   async searchAlbum(
     album: Album,
     contents: Content[]
@@ -102,6 +98,10 @@ export class MusicBrainzMetadataSource implements IMetadataSource {
     return {
       ...result,
       coverArtUrl,
+      artists: release['artist-credit'].map((credit) => ({
+        name: credit.name,
+        id: credit.artist.id,
+      })),
     };
   }
 }

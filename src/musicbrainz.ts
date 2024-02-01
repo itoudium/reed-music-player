@@ -1,10 +1,11 @@
 import { MusicBrainzMetadataSource } from './service/metadata/musicBrainz/musicBrainz';
 import { prisma } from './service/prisma';
-import { seeker } from './service/seeker';
+import { getSeeker } from './service/seeker';
 import { registerPictureByUrl } from './service/seeker/picture';
 
 (async () => {
   const metadataSource = new MusicBrainzMetadataSource();
+  const seeker = getSeeker();
 
   const albumsList = await seeker.listAlbums({});
 

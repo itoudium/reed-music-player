@@ -15,13 +15,9 @@ import {
   DrawerContent,
   DrawerCloseButton,
 } from '@chakra-ui/react';
-import { HamburgerIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, SettingsIcon } from '@chakra-ui/icons';
 import { Link as RemixLink } from '@remix-run/react';
-import {
-  BsMusicNote,
-  BsMusicNoteBeamed,
-  BsPersonLinesFill,
-} from 'react-icons/bs';
+import { BsMusicNoteBeamed, BsPersonLinesFill } from 'react-icons/bs';
 
 export function SideMenu() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -33,7 +29,7 @@ export function SideMenu() {
         hideBelow={'md'}
         as="nav"
         h="100vh"
-        w="200px"
+        w={40}
         position="fixed"
         top={0}
         left={0}
@@ -43,7 +39,7 @@ export function SideMenu() {
       >
         <SideMenuContent />
       </Box>
-      <Spacer hideBelow={'md'} w="200px" flex="0 1 200px"></Spacer>
+      <Spacer hideBelow={'md'} w={40} flex="0 1 200px"></Spacer>
       <Box
         hideFrom={'md'}
         as="nav"
@@ -60,7 +56,7 @@ export function SideMenu() {
           <HamburgerIcon />
         </Button>
       </Box>
-      <Spacer hideFrom={'md'} my={8}></Spacer>
+      <Spacer hideFrom={'md'} my={5}></Spacer>
       <Drawer
         isOpen={isOpen}
         placement="left"
@@ -72,7 +68,7 @@ export function SideMenu() {
           <DrawerCloseButton />
 
           <DrawerBody>
-            <SideMenuContent />
+            <SideMenuContent onClick={() => onClose()} />
           </DrawerBody>
         </DrawerContent>
       </Drawer>
@@ -80,25 +76,26 @@ export function SideMenu() {
   );
 }
 
-export function SideMenuContent() {
+export function SideMenuContent({ onClick }: { onClick?: () => void }) {
   return (
     <Stack justifyContent={'space-between'} h="100%" pb={52}>
       <Stack spacing={5} fontSize={'lg'}>
-        <Link to="/" as={RemixLink}>
+        <Link to="/" as={RemixLink} onClick={onClick}>
           Home
         </Link>
-        <Link to="/albums" as={RemixLink}>
+        <Link to="/albums" as={RemixLink} onClick={onClick}>
           <Icon as={BsMusicNoteBeamed} mr={2} />
           Album
         </Link>
-        <Link to="/artists" as={RemixLink}>
+        <Link to="/artists" as={RemixLink} onClick={onClick}>
           <Icon as={BsPersonLinesFill} mr={2} />
           Artist
         </Link>
       </Stack>
 
-      <Stack spacing={5} fontSize={'lg'}>
+      <Stack spacing={5} fontSize={'lg'} onClick={onClick}>
         <Link to="/setting" as={RemixLink}>
+          <SettingsIcon mr={2} />
           Setting
         </Link>
       </Stack>

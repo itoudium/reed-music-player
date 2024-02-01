@@ -4,16 +4,11 @@ import crypto from 'crypto';
 import { prisma } from '../prisma';
 import { url } from 'inspector';
 import axios from 'axios';
+import { httpClient } from '../../utils/httpClient';
 
 const REQUEST_INTERVAL = 1_000;
 const sleepInterval = () =>
   new Promise((resolve) => setTimeout(resolve, REQUEST_INTERVAL));
-
-const axiosClient = axios.create({
-  headers: {
-    'User-Agent': 'reed-seeker 0.0.1',
-  },
-});
 
 export async function registerPictureByMetadata(
   metadata: IAudioMetadata
@@ -86,7 +81,7 @@ export async function registerPictureByUrl(
 
 export async function downloadImage(url: string) {
   try {
-    const res = await axiosClient.get(url, { responseType: 'arraybuffer' });
+    const res = await httpClient.get(url, { responseType: 'arraybuffer' });
     return res.data;
   } catch (e) {
     return null;

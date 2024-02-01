@@ -1,16 +1,23 @@
-import { Grid, GridItem, Stack, StackDivider } from '@chakra-ui/react';
+import { Box, Grid, GridItem, Stack, StackDivider } from '@chakra-ui/react';
 import { Album } from '@prisma/client';
 import React from 'react';
 import { AlbumListItem } from './AlbumListItem';
+import { SerializeFrom } from '@remix-run/node';
 
-export function AlbumList({ albums }: { albums: Album[] }) {
+export function AlbumList({ albums }: { albums: SerializeFrom<Album>[] }) {
   return (
-    <Grid templateColumns={[null, 'repeat(2, 1fr)', 'repeat(5, 1fr)']} gap={3}>
+    <Stack
+      direction={'row'}
+      flexWrap={'wrap'}
+      justifyContent={'flex-start'}
+      margin={'auto'}
+      spacing={3}
+    >
       {albums.map((album) => (
-        <GridItem key={album.id}>
+        <Box key={album.id} w={20}>
           <AlbumListItem album={album} />
-        </GridItem>
+        </Box>
       ))}
-    </Grid>
+    </Stack>
   );
 }

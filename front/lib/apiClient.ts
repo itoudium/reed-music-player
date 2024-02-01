@@ -1,4 +1,5 @@
 import { Album, Content } from '@prisma/client';
+import { SerializeFrom } from '@remix-run/node';
 import axios from 'axios';
 
 const client = axios.create();
@@ -19,7 +20,7 @@ export async function setVolume(volume: number) {
 }
 
 type ListContentResult = {
-  contents: Content[];
+  contents: SerializeFrom<Content>[];
   totalCount: number;
 };
 
@@ -29,7 +30,7 @@ export async function listContent(options: {}): Promise<ListContentResult> {
 }
 
 type GetContentResult = {
-  content: Content;
+  content: SerializeFrom<Content>;
 };
 
 export async function getContent(options: {
@@ -40,7 +41,7 @@ export async function getContent(options: {
 }
 
 type ListAlbumsResult = {
-  albums: Album[];
+  albums: SerializeFrom<Album>[];
   totalCount: number;
 };
 
@@ -54,14 +55,18 @@ export async function listAlbums(options: {
 
 export async function getAlbum(options: {
   id: string;
-}): Promise<{ album: Album }> {
+}): Promise<{ album: SerializeFrom<Album> }> {
   const { data } = await client.post('/api/getAlbum', options);
   return data;
 }
 
 export async function listAlbumContents(options: {
   albumId: string;
-}): Promise<{ contents: Content[] }> {
+}): Promise<{ contents: SerializeFrom<Content>[] }> {
   const { data } = await client.post('/api/listAlbumContents', options);
   return data;
+}
+
+export async function startScan(options: { id: string }) {
+  await client.post('/api/startScan', options);
 }
