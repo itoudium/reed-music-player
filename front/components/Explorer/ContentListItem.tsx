@@ -9,13 +9,23 @@ import { SerializeFrom } from '@remix-run/node';
 
 export function ContentListItem({
   content,
+  albumId,
+  artistId,
 }: {
   content: SerializeFrom<Content>;
+  albumId?: string;
+  artistId?: string;
 }) {
   const { state } = useAppContext();
 
   const onClickPlay = () => {
-    play({ contentId: content.id });
+    play({
+      contentId: content.id,
+      context: {
+        albumId,
+        artistId,
+      },
+    });
   };
 
   return (
@@ -42,6 +52,18 @@ export function ContentListItem({
               top="5px"
               w="12px"
               h="12px"
+            />
+          )}
+          {state.playbackInfo.status === 'stopped' && (
+            <Box
+              position="absolute"
+              left={0}
+              top="50%"
+              transform="translateY(-50%)"
+              w="4px"
+              h="4px"
+              bg="green.500"
+              borderRadius="50%"
             />
           )}
         </>

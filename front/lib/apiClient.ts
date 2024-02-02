@@ -4,7 +4,11 @@ import axios from 'axios';
 
 const client = axios.create();
 
-export async function play(options: { contentId: string; position?: number }) {
+export async function play(options: {
+  contentId: string;
+  position?: number;
+  context?: { albumId?: string; artistId?: string };
+}) {
   const { data } = await client.post('/api/play', options);
   return data;
 }
@@ -16,6 +20,26 @@ export async function stop() {
 
 export async function setVolume(volume: number) {
   const { data } = await client.post('/api/setVolume', { volume });
+  return data;
+}
+
+export async function setRepeat(repeat: 'none' | 'one' | 'all') {
+  const { data } = await client.post('/api/setRepeat', { repeat });
+  return data;
+}
+
+export async function setShuffle(shuffle: boolean) {
+  const { data } = await client.post('/api/setShuffle', { shuffle });
+  return data;
+}
+
+export async function next() {
+  const { data } = await client.post('/api/next');
+  return data;
+}
+
+export async function prev() {
+  const { data } = await client.post('/api/prev');
   return data;
 }
 

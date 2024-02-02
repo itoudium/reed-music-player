@@ -1,6 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { withEmotionCache } from '@emotion/react';
-import { Box, ChakraProvider, Spacer, Stack } from '@chakra-ui/react';
+import {
+  Box,
+  ChakraProvider,
+  ColorModeScript,
+  Spacer,
+  Stack,
+} from '@chakra-ui/react';
 import {
   Links,
   LiveReload,
@@ -16,6 +22,7 @@ import { AppProvider } from './hooks/AppProvider';
 import { SideMenu } from './components/SideMenu';
 import { PlaybackController } from './components/PlaybackController';
 import { extendTheme } from '@chakra-ui/react';
+import { SocketObserver } from './components/SocketObserver';
 
 const theme = extendTheme({
   fontSizes: {
@@ -34,6 +41,10 @@ const theme = extendTheme({
   breakpoints: {
     sm: '0em',
     md: '30em',
+  },
+  config: {
+    initialColorMode: 'light',
+    useSystemColorMode: false,
   },
 });
 
@@ -94,6 +105,7 @@ const Document = withEmotionCache(
           ))}
         </head>
         <body>
+          <ColorModeScript />
           {children}
           <ScrollRestoration />
           <Scripts />
@@ -117,6 +129,7 @@ export default function App() {
             </Box>
           </Stack>
           <PlaybackController />
+          <SocketObserver />
         </ChakraProvider>
       </Document>
     </AppProvider>

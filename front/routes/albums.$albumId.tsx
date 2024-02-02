@@ -29,7 +29,7 @@ export default function AlbumPage() {
     <Container>
       <AlbumInfo album={album} artists={artists} />
       <Spacer my={3} />
-      <ContentList contents={contents} />
+      <ContentList contents={contents} albumId={album.id} />
     </Container>
   );
 }

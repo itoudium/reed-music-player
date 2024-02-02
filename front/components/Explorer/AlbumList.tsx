@@ -11,7 +11,7 @@ export function AlbumList({ albums }: { albums: SerializeFrom<Album>[] }) {
       flexWrap={'wrap'}
       justifyContent={'flex-start'}
       margin={'auto'}
-      spacing={3}
+      spacing={[2, 4, 6]}
     >
       {albums.map((album) => (
         <Box key={album.id} w={20}>

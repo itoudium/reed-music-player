@@ -26,6 +26,8 @@ playbackManager.events.on('updateState', (state) => {
 
 io.on('connection', (socket) => {
   console.log('a user connected');
+  playbackManager.broadcastStatus();
+
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });

@@ -11,7 +11,7 @@ export function ArtistList({ artists }: { artists: Artist[] }) {
   return (
     <Stack divider={<StackDivider />}>
       {artists.map((artist) => (
-        <ArtistListItem artist={artist} />
+        <ArtistListItem key={artist.id} artist={artist} />
       ))}
     </Stack>
   );

@@ -13,32 +13,31 @@ import {
   ModalOverlay,
   Stack,
   StackDivider,
+  Switch,
+  useColorMode,
   useDisclosure,
 } from '@chakra-ui/react';
 import { ActionFunctionArgs, SerializeFrom, json } from '@remix-run/node';
 import React from 'react';
 import { SeekerTarget } from '@prisma/client';
-import {
-  ClientActionFunctionArgs,
-  Form,
-  useLoaderData,
-} from '@remix-run/react';
+import { Form, useLoaderData } from '@remix-run/react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { serverSettings } from '../lib/bridge.server';
 import { DeleteIcon, RepeatIcon } from '@chakra-ui/icons';
 import { startScan } from '../lib/apiClient';
+import { useColorModeColor } from '../hooks/colorUtils';
 dayjs.extend(relativeTime);
 
 export async function loader() {
   const seekerTargets = await serverSettings.listSeekerTargets();
+
   return json({
     seekerTargets,
   });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log(request);
   const body = await request.formData();
   switch (body.get('_action')) {
     case 'deleteSeekerTarget': {
@@ -61,21 +60,6 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 }
 
-export const clientAction = async ({
-  request,
-  serverAction,
-}: ClientActionFunctionArgs) => {
-  console.log(request);
-  const body = await request.formData();
-
-  // console.log(body.get('_action'));
-  if (body.get('_action') === 'startScan') {
-    await startScan({ id: body.get('id')?.toString() ?? '' });
-  }
-
-  return null;
-};
-
 export default function SettingHome() {
   const data = useLoaderData<typeof loader>();
   return (
@@ -83,6 +67,9 @@ export default function SettingHome() {
       <Heading size="md">Setting</Heading>
       <SettingSection title="Entry point">
         <SeekerTargets seekerTargets={data.seekerTargets}></SeekerTargets>
+      </SettingSection>
+      <SettingSection title="Appearance">
+        <AppearanceSection />
       </SettingSection>
     </Container>
   );
@@ -95,6 +82,8 @@ function SettingSection({
   title: string;
   children: React.ReactNode;
 }) {
+  const { borderColor } = useColorModeColor();
+
   return (
     <Box
       as="section"
@@ -102,9 +91,9 @@ function SettingSection({
       borderWidth={1}
       p={3}
       m={3}
-      borderColor="gray.200"
+      borderColor={borderColor}
     >
-      <Heading size="sm" borderColor="gray.200">
+      <Heading size="md" mb={4}>
         {title}
       </Heading>
       {children}
@@ -159,6 +148,9 @@ function SeekerTargets({
                 variant="ghost"
                 name="_action"
                 value="startScan"
+                onClick={() => {
+                  startScan({ id: seekerTarget.id });
+                }}
               >
                 <RepeatIcon />
               </Button>
@@ -182,7 +174,13 @@ function SeekerTargets({
           <ModalHeader>Add entry point</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Form method="post" onSubmit={() => onClose()}>
+            <Form
+              method="post"
+              onSubmit={() => {
+                onClose();
+                return true;
+              }}
+            >
               <Stack direction={'row'}>
                 <Input type="text" name="path" placeholder="Path" required />
                 <Button type="submit" name="_action" value="createSeekerTarget">
@@ -194,5 +192,24 @@ function SeekerTargets({
         </ModalContent>
       </Modal>
     </>
+  );
+}
+
+function AppearanceSection() {
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  return (
+    <Box>
+      <Stack direction={'row'} alignItems={'center'}>
+        <Heading size="sm">Color mode</Heading>
+        <Switch
+          size="md"
+          colorScheme="gray"
+          onChange={() => toggleColorMode()}
+          isChecked={colorMode === 'dark'}
+        />
+        <Box>{colorMode === 'dark' ? 'Dark' : 'Light'}</Box>
+      </Stack>
+    </Box>
   );
 }

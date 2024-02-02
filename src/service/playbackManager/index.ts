@@ -3,22 +3,29 @@ import fs from 'fs/promises';
 import Speaker from 'speaker';
 import PCM from 'pcm-util';
 import EventEmitter from 'events';
-import { waitForEvent } from '../../utils/events';
-import { PlaybackInfoType } from '../../../types/AppStateType';
+import { PlaybackContext, PlaybackInfoType } from '../../../types/AppStateType';
 import { prisma } from '../prisma';
 import { Content } from '@prisma/client';
 import { Mixer } from './mixer';
 import { z } from 'zod';
 import { getSetting, setSetting } from '../settings';
+import { PlaybackContextManager } from './playbackContextManager';
 
 type JobType =
   | {
       action: 'play';
       contentId: string;
       position?: number;
+      context?: PlaybackContext;
     }
   | {
       action: 'stop';
+    }
+  | {
+      action: 'next';
+    }
+  | {
+      action: 'prev';
     };
 
 class PlaybackManager {
@@ -32,9 +39,34 @@ class PlaybackManager {
   playStartTime: Date | null = null;
   content?: Content;
   duration: number = 0;
+  shuffle = false;
+  repeat: 'none' | 'one' | 'all' = 'all';
+
+  context: PlaybackContext = {};
+
+  contextManager: PlaybackContextManager = new PlaybackContextManager(
+    {},
+    {
+      shuffle: this.shuffle,
+      repeat: this.repeat,
+      contentId: '',
+    }
+  );
+
   private _audioArrayBuffer: Uint8Array | null = null;
 
   constructor() {
+    // restore settings
+    getSetting('volume').then((volume) => {
+      volume && this.setVolume(parseInt(volume), false);
+    });
+    getSetting('shuffle').then((shuffle) => {
+      shuffle && (this.shuffle = shuffle === 'true');
+    });
+    getSetting('repeat').then((repeat) => {
+      repeat && (this.repeat = repeat as 'none' | 'one' | 'all');
+    });
+
     this.speaker = new Speaker({
       channels: 2,
       bitDepth: 16,
@@ -45,10 +77,6 @@ class PlaybackManager {
       channels: 2,
       bitDepth: 16,
       sampleRate: 44100,
-    });
-
-    getSetting('volume').then((volume) => {
-      volume && this.setVolume(parseInt(volume), false);
     });
 
     this.mixer.pipe(this.speaker);
@@ -67,19 +95,24 @@ class PlaybackManager {
     this.mixer.events.on('finished', () => {
       this.status = 'stopped';
       this.broadcastStatus();
+      this.next();
     });
   }
 
   private _lastStatus?: PlaybackInfoType['status'];
 
-  private broadcastStatus() {
-    this.events.emit('updateState', {
+  broadcastStatus() {
+    const state: PlaybackInfoType = {
       status: this.status,
       position: this.mixer.position,
       duration: this.duration,
       contentId: this.content?.id,
       volume: this.mixer.volume,
-    } as PlaybackInfoType);
+      repeat: this.repeat,
+      shuffle: this.shuffle,
+      context: this.context,
+    };
+    this.events.emit('updateState', state);
   }
 
   async processQueue() {
@@ -93,6 +126,12 @@ class PlaybackManager {
             break;
           case 'stop':
             await this._stop(task);
+            break;
+          case 'next':
+            await this._next(task);
+            break;
+          case 'prev':
+            await this._prev(task);
             break;
         }
       } catch (e) {
@@ -108,17 +147,34 @@ class PlaybackManager {
     this.events.emit('added');
   }
 
-  play(params: { contentId: string; position?: number }) {
+  play(params: {
+    contentId: string;
+    position?: number;
+    context?: PlaybackContext;
+  }) {
     this.addJob({
       action: 'play',
       contentId: params.contentId,
       position: params.position,
+      context: params.context,
     });
   }
 
   stop() {
     this.addJob({
       action: 'stop',
+    });
+  }
+
+  next() {
+    this.addJob({
+      action: 'next',
+    });
+  }
+
+  prev() {
+    this.addJob({
+      action: 'prev',
     });
   }
 
@@ -151,6 +207,14 @@ class PlaybackManager {
     this.playStartTime = new Date();
     this.playStartPosition = job.position ?? 0;
     this.status = 'playing';
+    this.context = job.context ?? this.context;
+    if (job.context) {
+      this.contextManager = new PlaybackContextManager(this.context, {
+        shuffle: this.shuffle,
+        repeat: this.repeat,
+        contentId: content.id,
+      });
+    }
 
     this.mixer.putAudioBuffer(
       Buffer.from(this._audioArrayBuffer),
@@ -171,6 +235,32 @@ class PlaybackManager {
     console.log('stopped');
   }
 
+  private async _next(_: JobType & { action: 'next' }) {
+    console.log('next');
+
+    this.contextManager.next();
+
+    if (!this.contextManager.currentContent) return;
+
+    this.play({
+      contentId: this.contextManager.currentContent.id,
+      position: 0,
+    });
+  }
+
+  private async _prev(_: JobType & { action: 'prev' }) {
+    console.log('prev');
+
+    this.contextManager.prev();
+
+    if (!this.contextManager.currentContent) return;
+
+    this.play({
+      contentId: this.contextManager.currentContent.id,
+      position: 0,
+    });
+  }
+
   setVolume(volume: number, save = true) {
     const parsed = z.number().max(100).min(0).parse(volume);
     this.mixer.volume = parsed;
@@ -178,6 +268,20 @@ class PlaybackManager {
     if (save) {
       setSetting('volume', parsed.toString());
     }
+  }
+
+  setShuffle(shuffle: boolean) {
+    this.shuffle = shuffle;
+    this.contextManager.setShuffle(shuffle);
+    setSetting('shuffle', shuffle.toString());
+    this.broadcastStatus();
+  }
+
+  setRepeat(repeat: 'none' | 'one' | 'all') {
+    this.repeat = repeat;
+    this.contextManager.setRepeat(repeat);
+    setSetting('repeat', repeat);
+    this.broadcastStatus();
   }
 }
 

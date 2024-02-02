@@ -6,6 +6,7 @@ import {
   Link,
   Spacer,
   Stack,
+  useColorMode,
   useDisclosure,
 } from '@chakra-ui/react';
 import {
@@ -18,8 +19,10 @@ import {
 import { HamburgerIcon, SettingsIcon } from '@chakra-ui/icons';
 import { Link as RemixLink } from '@remix-run/react';
 import { BsMusicNoteBeamed, BsPersonLinesFill } from 'react-icons/bs';
+import { useColorModeColor } from '../hooks/colorUtils';
 
 export function SideMenu() {
+  const { bgColor, borderColor } = useColorModeColor();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = React.useRef<HTMLButtonElement | null>(null);
 
@@ -34,7 +37,7 @@ export function SideMenu() {
         top={0}
         left={0}
         p={5}
-        borderColor={'gray.200'}
+        borderColor={borderColor}
         borderRightWidth={1}
       >
         <SideMenuContent />
@@ -44,19 +47,22 @@ export function SideMenu() {
         hideFrom={'md'}
         as="nav"
         w="100vw"
+        h={12}
         position="fixed"
         top={0}
         left={0}
-        background="white"
-        borderColor={'gray.200'}
+        background={bgColor}
+        borderColor={borderColor}
         borderBottomWidth={1}
         zIndex={1}
+        display={'flex'}
+        alignItems={'center'}
       >
         <Button ref={btnRef} variant="ghost" onClick={onOpen}>
-          <HamburgerIcon />
+          <HamburgerIcon h={4} w={4} />
         </Button>
       </Box>
-      <Spacer hideFrom={'md'} my={5}></Spacer>
+      <Spacer hideFrom={'md'} my={6}></Spacer>
       <Drawer
         isOpen={isOpen}
         placement="left"

@@ -9,11 +9,20 @@ import {
   Spinner,
   Stack,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '../hooks/AppProvider';
-import { getContent, play, setVolume, stop } from '../lib/apiClient';
+import {
+  getContent,
+  next,
+  play,
+  prev,
+  setRepeat,
+  setShuffle,
+  setVolume,
+  stop,
+} from '../lib/apiClient';
 import { Icon } from '@chakra-ui/react';
-import { BsPause } from 'react-icons/bs';
+import { BsPause, BsRepeat, BsRepeat1, BsShuffle } from 'react-icons/bs';
 import { BsPlay } from 'react-icons/bs';
 import { BsSkipForward } from 'react-icons/bs';
 import { BsSkipBackward } from 'react-icons/bs';
@@ -21,15 +30,44 @@ import { secondToDisplayTime } from '../lib/timeUtil';
 import { useAPILoader } from '../hooks/apiLoader';
 import { VolumeControl } from './PlaybackController/VolumeControl';
 import { PositionControl } from './PlaybackController/PositionControl';
+import { useColorModeColor } from '../hooks/colorUtils';
+
+function nextRepeatMode(repeat: 'none' | 'one' | 'all' | undefined) {
+  switch (repeat) {
+    case 'none':
+      return 'all';
+    case 'all':
+      return 'one';
+    case 'one':
+      return 'none';
+    default:
+      return 'all';
+  }
+}
+
+const CONTEXT_ICON_SIZE = 4;
+const MAIN_ICON_SIZE = 6;
 
 export function PlaybackController() {
   const { state } = useAppContext();
+  const { bgColor, borderColor } = useColorModeColor();
 
   const [content, isLoading] = useAPILoader(async () => {
     return state.playbackInfo.contentId
       ? getContent({ id: state.playbackInfo.contentId })
       : null;
   }, [state.playbackInfo.contentId]);
+
+  const [uiShuffle, setUiShuffle] = React.useState(state.playbackInfo.shuffle);
+  const [uiRepeat, setUiRepeat] = React.useState(state.playbackInfo.repeat);
+
+  useEffect(() => {
+    setUiShuffle(state.playbackInfo.shuffle);
+  }, [state.playbackInfo.shuffle]);
+
+  useEffect(() => {
+    setUiRepeat(state.playbackInfo.repeat);
+  }, [state.playbackInfo.repeat]);
 
   const onClickPlay = () => {
     if (!state.playbackInfo.contentId) return;
@@ -41,6 +79,14 @@ export function PlaybackController() {
 
   const onClickStop = () => {
     stop();
+  };
+
+  const onClickPrev = () => {
+    prev();
+  };
+
+  const onClickNext = () => {
+    next();
   };
 
   const onChangeVolume = (val: number) => {
@@ -56,8 +102,8 @@ export function PlaybackController() {
       right={0}
       pt={3}
       w="100vw"
-      backgroundColor="white"
-      borderColor="gray.200"
+      backgroundColor={bgColor}
+      borderColor={borderColor}
       borderTopWidth={1}
       alignItems={'center'}
     >
@@ -74,9 +120,24 @@ export function PlaybackController() {
           </Box>
         </Stack>
 
-        <Stack direction="row" justifyContent="center" position="relative">
+        <Stack
+          direction="row"
+          justifyContent="center"
+          alignItems="center"
+          position="relative"
+        >
+          <Button
+            variant="ghost"
+            colorScheme={uiShuffle ? 'green' : undefined}
+            onClick={() => {
+              setUiShuffle(!uiShuffle);
+              setShuffle(!uiShuffle);
+            }}
+          >
+            <Icon as={BsShuffle} w={CONTEXT_ICON_SIZE} h={CONTEXT_ICON_SIZE} />
+          </Button>
           <Button variant="ghost">
-            <Icon as={BsSkipBackward} w={6} h={6} />
+            <Icon as={BsSkipBackward} w={6} h={6} onClick={onClickPrev} />
           </Button>
           {(state.playbackInfo.status === 'playing' ||
             state.playbackInfo.status === 'decoding') && (
@@ -95,7 +156,36 @@ export function PlaybackController() {
             </Button>
           )}
           <Button variant="ghost">
-            <Icon as={BsSkipForward} w={6} h={6} />
+            <Icon as={BsSkipForward} w={6} h={6} onClick={onClickNext} />
+          </Button>
+          <Button
+            variant="ghost"
+            // colorScheme={uiRepeat === "all" || uiRepeat === "one" ? 'green' : undefined}
+            onClick={() => {
+              const nextMode = nextRepeatMode(uiRepeat);
+              setUiRepeat(nextMode);
+              setRepeat(nextMode);
+            }}
+          >
+            {uiRepeat === 'one' && (
+              <Icon
+                as={BsRepeat1}
+                w={CONTEXT_ICON_SIZE}
+                h={CONTEXT_ICON_SIZE}
+                color="green.500"
+              />
+            )}
+            {uiRepeat === 'all' && (
+              <Icon
+                as={BsRepeat}
+                w={CONTEXT_ICON_SIZE}
+                h={CONTEXT_ICON_SIZE}
+                color="green.500"
+              />
+            )}
+            {(!uiRepeat || uiRepeat === 'none') && (
+              <Icon as={BsRepeat} w={CONTEXT_ICON_SIZE} h={CONTEXT_ICON_SIZE} />
+            )}
           </Button>
         </Stack>
 

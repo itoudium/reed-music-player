@@ -13,6 +13,7 @@ pictureRoute.get('/pictures/:id', async (req, res) => {
 
   res.setHeader('Content-Type', picture.type);
   res.setHeader('Content-Length', picture.size);
-  res.setHeader('Cache-Control', 'public, max-age=60');
+  // cache 1day
+  res.setHeader('Cache-Control', 'public, max-age=86400');
   res.end(picture.data);
 });

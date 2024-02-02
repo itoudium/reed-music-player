@@ -7,6 +7,7 @@ import {
 import React from 'react';
 import { useAppContext } from '../../hooks/AppProvider';
 import { play } from '../../lib/apiClient';
+import { set } from 'zod';
 
 export function PositionControl() {
   const { state } = useAppContext();
@@ -19,6 +20,7 @@ export function PositionControl() {
   const [contentId, setContentId] = React.useState(
     state.playbackInfo.contentId
   );
+  const [hideThumb, setHideThumb] = React.useState(true);
 
   React.useEffect(() => {
     if (!lock) {
@@ -52,12 +54,14 @@ export function PositionControl() {
             position: (val / 100) * (state.playbackInfo.duration ?? 0),
           });
       }}
+      onMouseEnter={() => setHideThumb(false)}
+      onMouseLeave={() => setHideThumb(true)}
       colorScheme="green"
     >
       <SliderTrack>
         <SliderFilledTrack />
       </SliderTrack>
-      <SliderThumb />
+      <SliderThumb hidden={hideThumb} />
     </Slider>
   );
 }

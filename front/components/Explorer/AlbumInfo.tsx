@@ -20,7 +20,7 @@ export function AlbumInfo({
         <Stack
           direction={'row'}
           spacing={2}
-          divider={<>&nbsp;/&nbsp;</>}
+          divider={<>&nbsp;,&nbsp;</>}
           flexWrap={'wrap'}
         >
           {artists.map((artist) => (
