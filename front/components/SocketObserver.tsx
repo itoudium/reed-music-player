@@ -26,13 +26,6 @@ export function SocketObserver() {
       setTimerId(id);
     } else {
       toast.closeAll();
-      toast({
-        description: 'Connected',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-        position: 'top-right',
-      });
     }
   }, [isConnected]);
 

@@ -49,6 +49,11 @@ app.use('/api', routes);
 // and your app is "just a request handler"
 app.all('*', createRequestHandler({ build }));
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('application error');
+});
+
 server.listen(3000, () => {
   if (process.env.NODE_ENV === 'development') {
     broadcastDevReady(build);

@@ -5,7 +5,7 @@ import axios from 'axios';
 const client = axios.create();
 
 export async function play(options: {
-  contentId: string;
+  contentId?: string;
   position?: number;
   context?: { albumId?: string; artistId?: string };
 }) {

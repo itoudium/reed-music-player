@@ -11,7 +11,7 @@ import {
   SliderTrack,
 } from '@chakra-ui/react';
 import React, { useMemo } from 'react';
-import { BsVolumeUp } from 'react-icons/bs';
+import { BsVolumeUp, BsVolumeDown, BsVolumeMute } from 'react-icons/bs';
 
 export function VolumeControl({
   onChangeEnd,
@@ -29,11 +29,14 @@ export function VolumeControl({
     }
   }, [value]);
 
+  const VolumeIcon =
+    lockValue >= 50 ? BsVolumeUp : lockValue >= 1 ? BsVolumeDown : BsVolumeMute;
+
   return (
     <Popover trigger="hover">
       <PopoverTrigger>
         <Button variant="ghost">
-          <Icon as={BsVolumeUp} w={6} h={6} color="gray.500" />
+          <Icon as={VolumeIcon} w={6} h={6} color="gray.500" />
         </Button>
       </PopoverTrigger>
       <PopoverContent w={10}>

@@ -16,10 +16,16 @@ import {
   DrawerContent,
   DrawerCloseButton,
 } from '@chakra-ui/react';
-import { HamburgerIcon, SettingsIcon } from '@chakra-ui/icons';
+import {
+  CheckCircleIcon,
+  HamburgerIcon,
+  SettingsIcon,
+  WarningTwoIcon,
+} from '@chakra-ui/icons';
 import { Link as RemixLink } from '@remix-run/react';
 import { BsMusicNoteBeamed, BsPersonLinesFill } from 'react-icons/bs';
 import { useColorModeColor } from '../hooks/colorUtils';
+import { useAppContext } from '../hooks/AppProvider';
 
 export function SideMenu() {
   const { bgColor, borderColor } = useColorModeColor();
@@ -83,9 +89,11 @@ export function SideMenu() {
 }
 
 export function SideMenuContent({ onClick }: { onClick?: () => void }) {
+  const { isConnected } = useAppContext();
+
   return (
-    <Stack justifyContent={'space-between'} h="100%" pb={52}>
-      <Stack spacing={5} fontSize={'lg'}>
+    <Stack justifyContent={'space-between'} h="100%" pb={52} fontSize={'lg'}>
+      <Stack spacing={5} fontSize={'lg'} flexGrow={1}>
         <Link to="/" as={RemixLink} onClick={onClick}>
           Home
         </Link>
@@ -104,6 +112,24 @@ export function SideMenuContent({ onClick }: { onClick?: () => void }) {
           <SettingsIcon mr={2} />
           Setting
         </Link>
+      </Stack>
+      <Stack
+        direction={'row'}
+        color="gray.500"
+        alignItems="center"
+        fontSize={'md'}
+      >
+        {isConnected ? (
+          <>
+            <CheckCircleIcon color="green.500" />
+            Connected
+          </>
+        ) : (
+          <>
+            <WarningTwoIcon color="red.500" />
+            Disconnected
+          </>
+        )}
       </Stack>
     </Stack>
   );

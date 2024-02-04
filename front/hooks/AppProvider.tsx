@@ -13,6 +13,9 @@ function useApp(): AppState {
     playbackInfo: {
       status: 'stopped',
       volume: 100,
+      repeat: 'none',
+      shuffle: false,
+      context: {},
     },
   });
   useEffect(() => {

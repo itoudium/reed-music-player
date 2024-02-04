@@ -11,16 +11,18 @@ export class PlaybackContextManager {
   private shuffle: boolean = false;
   private repeat: 'none' | 'one' | 'all' = 'all';
 
+  private waitUntilLoadedPromise: Promise<void>;
+
   constructor(
     context: PlaybackContext,
     params: {
       shuffle: boolean;
       repeat: 'none' | 'one' | 'all';
-      contentId: string;
+      contentId?: string;
     }
   ) {
     this._context = context;
-    this.loadContents().then(() => {
+    this.waitUntilLoadedPromise = this.loadContents().then(() => {
       this.setShuffle(params.shuffle);
       this.setRepeat(params.repeat);
       this.setCurrentContent(params.contentId);
@@ -53,8 +55,11 @@ export class PlaybackContextManager {
       // load all contents
       this._rawContents = await prisma.content.findMany();
     }
-
     this._contents = this._rawContents;
+  }
+
+  public async waitUntilLoaded() {
+    return this.waitUntilLoadedPromise;
   }
 
   public next() {
@@ -111,10 +116,14 @@ export class PlaybackContextManager {
   }
 
   private shuffleContents() {
-    this._contents = this._rawContents.sort(() => Math.random() - 0.5);
+    this._contents = [...this._rawContents].sort(() => Math.random() - 0.5);
   }
 
   public get currentContent() {
+    console.log(
+      'content ids',
+      this._contents.map((content) => content.id)
+    );
     // if index is not number, return null
     if (typeof this.currentTrackIndex !== 'number') {
       return null;
@@ -122,7 +131,11 @@ export class PlaybackContextManager {
     return this._contents[this.currentTrackIndex];
   }
 
-  public setCurrentContent(contentId: string) {
+  public setCurrentContent(contentId?: string) {
+    if (!contentId) {
+      this.currentTrackIndex = 0;
+      return;
+    }
     this.currentTrackIndex = this._contents.findIndex(
       (content) => content.id === contentId
     );

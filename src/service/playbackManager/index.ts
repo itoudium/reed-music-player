@@ -14,7 +14,7 @@ import { PlaybackContextManager } from './playbackContextManager';
 type JobType =
   | {
       action: 'play';
-      contentId: string;
+      contentId?: string;
       position?: number;
       context?: PlaybackContext;
     }
@@ -148,7 +148,7 @@ class PlaybackManager {
   }
 
   play(params: {
-    contentId: string;
+    contentId?: string;
     position?: number;
     context?: PlaybackContext;
   }) {
@@ -181,11 +181,19 @@ class PlaybackManager {
   private async _play(job: JobType & { action: 'play' }) {
     this.mixer.clearAudioBuffer();
 
-    const content = await prisma.content.findUnique({
-      where: {
-        id: job.contentId,
-      },
-    });
+    // update context
+    this.context = job.context ?? this.context;
+    if (job.context) {
+      this.contextManager = new PlaybackContextManager(this.context, {
+        shuffle: this.shuffle,
+        repeat: this.repeat,
+        contentId: job.contentId,
+      });
+    }
+    await this.contextManager.waitUntilLoaded();
+
+    const content = this.contextManager.currentContent;
+
     if (!content) {
       throw new Error('content not found');
     }
@@ -207,14 +215,6 @@ class PlaybackManager {
     this.playStartTime = new Date();
     this.playStartPosition = job.position ?? 0;
     this.status = 'playing';
-    this.context = job.context ?? this.context;
-    if (job.context) {
-      this.contextManager = new PlaybackContextManager(this.context, {
-        shuffle: this.shuffle,
-        repeat: this.repeat,
-        contentId: content.id,
-      });
-    }
 
     this.mixer.putAudioBuffer(
       Buffer.from(this._audioArrayBuffer),

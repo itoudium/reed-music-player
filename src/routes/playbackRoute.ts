@@ -5,7 +5,7 @@ import { playbackManager } from '../service/playbackManager';
 const route = Router();
 
 const playParamsParser = z.object({
-  contentId: z.string(),
+  contentId: z.string().optional(),
   position: z.number().optional(),
   context: z
     .object({

@@ -27,7 +27,7 @@ export default function AlbumPage() {
 
   return (
     <Container>
-      <AlbumInfo album={album} artists={artists} />
+      <AlbumInfo album={album} artists={artists} contents={contents} />
       <Spacer my={3} />
       <ContentList contents={contents} albumId={album.id} />
     </Container>
