@@ -1,17 +1,8 @@
-import {
-  Box,
-  Button,
-  Container,
-  Slider,
-  SliderFilledTrack,
-  SliderThumb,
-  SliderTrack,
-  Spinner,
-  Stack,
-} from '@chakra-ui/react';
+import { Box, Button, Stack, Link } from '@chakra-ui/react';
 import React, { useEffect } from 'react';
 import { useAppContext } from '../hooks/AppProvider';
 import {
+  getAlbum,
   getContent,
   next,
   play,
@@ -31,6 +22,8 @@ import { useAPILoader } from '../hooks/apiLoader';
 import { VolumeControl } from './PlaybackController/VolumeControl';
 import { PositionControl } from './PlaybackController/PositionControl';
 import { useColorModeColor } from '../hooks/colorUtils';
+import { AlbumArtwork } from './AlbumArtwork';
+import { Link as RemixLink } from '@remix-run/react';
 
 function nextRepeatMode(repeat: 'none' | 'one' | 'all' | undefined) {
   switch (repeat) {
@@ -57,6 +50,12 @@ export function PlaybackController() {
       ? getContent({ id: state.playbackInfo.contentId })
       : null;
   }, [state.playbackInfo.contentId]);
+
+  const [album, isLoadingAlbum] = useAPILoader(async () => {
+    return content?.content?.albumId
+      ? getAlbum({ id: content.content.albumId })
+      : null;
+  }, [content?.content?.albumId]);
 
   const [uiShuffle, setUiShuffle] = React.useState(state.playbackInfo.shuffle);
   const [uiRepeat, setUiRepeat] = React.useState(state.playbackInfo.repeat);
@@ -107,110 +106,140 @@ export function PlaybackController() {
       borderTopWidth={1}
       alignItems={'center'}
     >
-      <Box maxW="md" m="auto">
-        <Stack mb={2} justifyContent="center" textAlign="center" spacing={0}>
-          <Box fontSize="sm" color="gray.500">
-            {content?.content?.artist || <br />}
-          </Box>
-          <Box fontSize="lg" fontWeight="bold">
-            {content?.content?.title || <br />}
-          </Box>
-          <Box fontSize="sm" color="gray.500">
-            {content?.content?.album || <br />}
-          </Box>
-        </Stack>
+      <Stack
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        maxW="md"
+        m="auto"
+        spacing={3}
+      >
+        <AlbumArtwork album={album?.album} size={28} />
+        <Box>
+          <Stack mb={2} justifyContent="center" textAlign="center" spacing={0}>
+            <Box fontSize="sm" color="gray.500">
+              {content?.content?.artist || <br />}
+            </Box>
+            <Box fontSize="lg" fontWeight="bold">
+              {content?.content?.title || <br />}
+            </Box>
+            <Box fontSize="sm" color="gray.500">
+              {!!album?.album?.name && (
+                <Link as={RemixLink} to={`/albums/${album.album.id}`}>
+                  {album.album.name}
+                </Link>
+              )}
+              {<br />}
+            </Box>
+          </Stack>
 
-        <Stack
-          direction="row"
-          justifyContent="center"
-          alignItems="center"
-          position="relative"
-        >
-          <Button
-            variant="ghost"
-            colorScheme={uiShuffle ? 'green' : undefined}
-            onClick={() => {
-              setUiShuffle(!uiShuffle);
-              setShuffle(!uiShuffle);
-            }}
+          <Stack
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            position="relative"
           >
-            <Icon as={BsShuffle} w={CONTEXT_ICON_SIZE} h={CONTEXT_ICON_SIZE} />
-          </Button>
-          <Button variant="ghost">
-            <Icon as={BsSkipBackward} w={6} h={6} onClick={onClickPrev} />
-          </Button>
-          {(state.playbackInfo.status === 'playing' ||
-            state.playbackInfo.status === 'decoding') && (
             <Button
-              onClick={onClickStop}
               variant="ghost"
-              disabled={state.playbackInfo.status === 'decoding'}
+              onClick={() => {
+                setUiShuffle(!uiShuffle);
+                setShuffle(!uiShuffle);
+              }}
             >
-              <Icon as={BsPause} w={6} h={6} />
-            </Button>
-          )}
-          {(state.playbackInfo.status === 'paused' ||
-            state.playbackInfo.status === 'stopped') && (
-            <Button onClick={onClickPlay} variant="ghost">
-              <Icon as={BsPlay} w={6} h={6} />
-            </Button>
-          )}
-          <Button variant="ghost">
-            <Icon as={BsSkipForward} w={6} h={6} onClick={onClickNext} />
-          </Button>
-          <Button
-            variant="ghost"
-            // colorScheme={uiRepeat === "all" || uiRepeat === "one" ? 'green' : undefined}
-            onClick={() => {
-              const nextMode = nextRepeatMode(uiRepeat);
-              setUiRepeat(nextMode);
-              setRepeat(nextMode);
-            }}
-          >
-            {uiRepeat === 'one' && (
               <Icon
-                as={BsRepeat1}
+                as={BsShuffle}
+                color={uiShuffle ? 'green.500' : undefined}
                 w={CONTEXT_ICON_SIZE}
                 h={CONTEXT_ICON_SIZE}
-                color="green.500"
               />
+            </Button>
+            <Button variant="ghost">
+              <Icon as={BsSkipBackward} w={6} h={6} onClick={onClickPrev} />
+            </Button>
+            {(state.playbackInfo.status === 'playing' ||
+              state.playbackInfo.status === 'decoding') && (
+              <Button
+                onClick={onClickStop}
+                variant="ghost"
+                disabled={state.playbackInfo.status === 'decoding'}
+              >
+                <Icon as={BsPause} w={6} h={6} />
+              </Button>
             )}
-            {uiRepeat === 'all' && (
-              <Icon
-                as={BsRepeat}
-                w={CONTEXT_ICON_SIZE}
-                h={CONTEXT_ICON_SIZE}
-                color="green.500"
-              />
+            {(state.playbackInfo.status === 'paused' ||
+              state.playbackInfo.status === 'stopped') && (
+              <Button onClick={onClickPlay} variant="ghost">
+                <Icon as={BsPlay} w={6} h={6} />
+              </Button>
             )}
-            {(!uiRepeat || uiRepeat === 'none') && (
-              <Icon as={BsRepeat} w={CONTEXT_ICON_SIZE} h={CONTEXT_ICON_SIZE} />
-            )}
-          </Button>
-        </Stack>
+            <Button variant="ghost">
+              <Icon as={BsSkipForward} w={6} h={6} onClick={onClickNext} />
+            </Button>
+            <Button
+              variant="ghost"
+              // colorScheme={uiRepeat === "all" || uiRepeat === "one" ? 'green' : undefined}
+              onClick={() => {
+                const nextMode = nextRepeatMode(uiRepeat);
+                setUiRepeat(nextMode);
+                setRepeat(nextMode);
+              }}
+            >
+              {uiRepeat === 'one' && (
+                <Icon
+                  as={BsRepeat1}
+                  w={CONTEXT_ICON_SIZE}
+                  h={CONTEXT_ICON_SIZE}
+                  color="green.500"
+                />
+              )}
+              {uiRepeat === 'all' && (
+                <Icon
+                  as={BsRepeat}
+                  w={CONTEXT_ICON_SIZE}
+                  h={CONTEXT_ICON_SIZE}
+                  color="green.500"
+                />
+              )}
+              {(!uiRepeat || uiRepeat === 'none') && (
+                <Icon
+                  as={BsRepeat}
+                  w={CONTEXT_ICON_SIZE}
+                  h={CONTEXT_ICON_SIZE}
+                />
+              )}
+            </Button>
+          </Stack>
 
-        <Stack p={3} direction={'row'} position="relative">
-          <Box
-            textAlign="center"
-            fontSize="xs"
-            color="gray.500"
-            position="absolute"
-            left="50%"
-            transform="translateX(-50%)"
-            bottom={2}
-          >
-            {secondToDisplayTime(state.playbackInfo.position)} /{' '}
-            {secondToDisplayTime(state.playbackInfo.duration)}
-          </Box>
-          <PositionControl />
-          <Box flexShrink={1}>
-            <VolumeControl
-              onChangeEnd={onChangeVolume}
-              value={state.playbackInfo.volume}
-            />
-          </Box>
-        </Stack>
-      </Box>
+          <Stack p={3} direction={'row'} alignItems="stretch">
+            <Box
+              position="relative"
+              flexGrow={1}
+              display={'flex'}
+              alignItems={'center'}
+            >
+              <PositionControl />
+              <Box
+                textAlign="center"
+                fontSize="xs"
+                color="gray.500"
+                position="absolute"
+                left="50%"
+                transform="translateX(-50%)"
+                bottom={4}
+              >
+                {secondToDisplayTime(state.playbackInfo.position)} /{' '}
+                {secondToDisplayTime(state.playbackInfo.duration)}
+              </Box>
+            </Box>
+            <Box flexShrink={1}>
+              <VolumeControl
+                onChangeEnd={onChangeVolume}
+                value={state.playbackInfo.volume}
+              />
+            </Box>
+          </Stack>
+        </Box>
+      </Stack>
     </Box>
   );
 }

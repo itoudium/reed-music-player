@@ -35,8 +35,8 @@ export function VolumeControl({
   return (
     <Popover trigger="hover">
       <PopoverTrigger>
-        <Button variant="ghost">
-          <Icon as={VolumeIcon} w={6} h={6} color="gray.500" />
+        <Button variant="ghost" w={6} h={6} p={0} m={0}>
+          <Icon as={VolumeIcon} w={6} h={6} p={0} m={0} color="gray.500" />
         </Button>
       </PopoverTrigger>
       <PopoverContent w={10}>

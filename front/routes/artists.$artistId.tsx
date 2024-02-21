@@ -22,7 +22,7 @@ export default function ArtistDetail() {
       <Heading size="md" my={8}>
         <Link to="/artists" as={RemixLink}>
           <Text as="span" color="gray.500" fontWeight={'normal'}>
-            Artist /
+            Artist&nbsp;/&nbsp;
           </Text>
         </Link>
         {artist?.name}

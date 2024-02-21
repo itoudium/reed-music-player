@@ -60,8 +60,8 @@ export function AlbumInfo({
           <Button variant={'ghost'} onClick={onPlayAlbum}>
             <Icon
               as={BsPlayCircle}
-              w={5}
-              h={5}
+              w={6}
+              h={6}
               color={nowPlayingThisAlbum ? 'green.500' : undefined}
             />
           </Button>

@@ -8,7 +8,7 @@ export function AlbumArtwork({
   album,
   size,
 }: {
-  album: SerializeFrom<Album>;
+  album: SerializeFrom<Album> | undefined;
   size: number | string;
 }) {
   return (
@@ -22,7 +22,7 @@ export function AlbumArtwork({
       overflow={'hidden'}
       boxShadow="sm"
     >
-      {album.pictureId && (
+      {album && album.pictureId && (
         <Image
           src={`/api/pictures/${album.pictureId}`}
           alt={album.name}
@@ -30,7 +30,7 @@ export function AlbumArtwork({
           boxSize={size}
         />
       )}
-      {!album.pictureId && (
+      {(!album || !album.pictureId) && (
         <Icon
           as={BsMusicNote}
           w={10}
