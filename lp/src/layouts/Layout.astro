@@ -1,0 +1,40 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Reed: headless music player" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="keywords" content="reed, 音楽プレイヤー, 音楽, 再生, サーバ, headless music player, オープンソース, 無料" />
+		<title>{title}</title>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+<style is:global>
+	html {
+		background: rgb(18, 18, 18);
+		color: rgb(235, 241, 242);
+		font-family:
+			Menlo,
+			Monaco,
+			Lucida Console,
+			Liberation Mono,
+			DejaVu Sans Mono,
+			Bitstream Vera Sans Mono,
+			Courier New,
+			monospace;
+	}
+	a {
+		text-decoration: underline;
+	}
+</style>
