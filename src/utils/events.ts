@@ -1,7 +1,7 @@
-import EventEmitter from "events";
+import EventEmitter from 'events';
 
 export function waitForEvent(eventEmitter: EventEmitter, eventName: string) {
-  return new Promise<void>((resolve, _) => {
+  return new Promise<void>((resolve) => {
     eventEmitter.once(eventName, () => {
       resolve();
     });

@@ -2,8 +2,6 @@ import { Picture } from '@prisma/client';
 import { IAudioMetadata, selectCover } from 'music-metadata';
 import crypto from 'crypto';
 import { prisma } from '../prisma';
-import { url } from 'inspector';
-import axios from 'axios';
 import { httpClient } from '../../utils/httpClient';
 
 const REQUEST_INTERVAL = 1_000;

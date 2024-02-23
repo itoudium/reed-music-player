@@ -1,4 +1,4 @@
-import { Album, Artist, Content } from '@prisma/client';
+import { Album, Content } from '@prisma/client';
 import { prisma } from '../prisma';
 import path from 'path';
 import { MusicBrainzMetadataSource } from '../metadata/musicBrainz/musicBrainz';
@@ -77,7 +77,7 @@ async function fetchMetadataBySource(album: Album, source: IMetadataSource) {
     },
   });
 
-  const searchResult = await source.searchAlbum(album, contents);
+  const searchResult = await source.searchAlbum(album);
   console.log('[fetchMetadata] result:', searchResult, 'source:', source.name);
 
   let pictureId: string | undefined;

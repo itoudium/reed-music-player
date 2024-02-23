@@ -8,10 +8,11 @@
     "dev": "remix dev -c \"node -r esbuild-register src/server.ts\"",
     "exec": "node -r esbuild-register",
     "typecheck": "tsc",
-    "migrate": "prisma migrate dev"
+    "migrate": "prisma migrate dev",
+    "build": "tsc --project tsconfig.server.json && remix build"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "itoudium@gmail.com",
+  "license": "Apache-2.0",
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
@@ -67,6 +68,7 @@
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typedoc": "^0.25.7",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^7.0.2"
   }
 }

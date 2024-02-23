@@ -10,8 +10,7 @@ import { registerPictureByUrl } from './service/seeker/picture';
   const albumsList = await seeker.listAlbums({});
 
   for (const album of albumsList.albums) {
-    const { contents } = await seeker.listAlbumContents({ albumId: album.id });
-    const searchResult = await metadataSource.searchAlbum(album, contents);
+    const searchResult = await metadataSource.searchAlbum(album);
     console.log(searchResult);
 
     if (searchResult?.coverArtUrl) {

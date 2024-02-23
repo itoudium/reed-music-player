@@ -57,7 +57,7 @@ export const meta: MetaFunction = () => [
   },
 ];
 
-export let links: LinksFunction = () => {
+export const links: LinksFunction = () => {
   return [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com' },

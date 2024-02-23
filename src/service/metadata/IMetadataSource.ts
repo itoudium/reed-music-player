@@ -1,4 +1,4 @@
-import { Album, Content } from '@prisma/client';
+import { Album } from '@prisma/client';
 
 export type SearchAlbumResult = {
   sourceId: string;
@@ -12,8 +12,5 @@ export type SearchAlbumResult = {
 
 export interface IMetadataSource {
   name: string;
-  searchAlbum(
-    album: Album,
-    contents: Content[]
-  ): Promise<SearchAlbumResult | null>;
+  searchAlbum(album: Album): Promise<SearchAlbumResult | null>;
 }

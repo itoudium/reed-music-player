@@ -1,5 +1,5 @@
 import { IMetadataSource, SearchAlbumResult } from '../IMetadataSource';
-import { Album, Content } from '@prisma/client';
+import { Album } from '@prisma/client';
 import { mb_ReleaseImageResultType, mb_SearchReleaseResultType } from './types';
 import path from 'path';
 import { httpClient } from '../../../utils/httpClient';
@@ -9,18 +9,6 @@ const musicBrainzBaseUrl = 'https://musicbrainz.org/ws/2';
 const REQUEST_INTERVAL = 1_000;
 const sleepInterval = () =>
   new Promise((resolve) => setTimeout(resolve, REQUEST_INTERVAL));
-
-async function searchArtist(name: string) {
-  try {
-    const res = await httpClient.get(
-      musicBrainzBaseUrl +
-        `/artist/?limit=5&query=artist:${encodeURIComponent(name)}`
-    );
-    return res;
-  } finally {
-    await sleepInterval();
-  }
-}
 
 async function searchRelease(params: {
   release?: string[];
@@ -66,10 +54,7 @@ async function getCoverArt(releaseId: string) {
 
 export class MusicBrainzMetadataSource implements IMetadataSource {
   name = 'musicBrainz';
-  async searchAlbum(
-    album: Album,
-    contents: Content[]
-  ): Promise<SearchAlbumResult | null> {
+  async searchAlbum(album: Album): Promise<SearchAlbumResult | null> {
     const artist = album.albumArtist;
     const albumPaths = (album.albumPath ?? '').split(path.sep);
     const albumName = albumPaths[albumPaths.length - 1];

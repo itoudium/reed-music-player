@@ -3,7 +3,7 @@ import path from 'path';
 import { z } from 'zod';
 import { prisma } from '../prisma';
 import { parseFile } from 'music-metadata';
-import { buildAlbums, updateAlbumMetadata, registerAlbum } from './album';
+import { updateAlbumMetadata, registerAlbum } from './album';
 import { registerPictureByMetadata } from './picture';
 import { Content, SeekerTarget } from '@prisma/client';
 
@@ -21,8 +21,6 @@ class Seeker {
     for (const ep of entryPoints) {
       await this.startScanByTarget(ep);
     }
-
-    await buildAlbums();
   }
 
   async startScanByTarget(target: SeekerTarget) {

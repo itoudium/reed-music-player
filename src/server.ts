@@ -9,10 +9,9 @@ import compression from 'compression';
 import morgan from 'morgan';
 import './service/seeker';
 import { playbackManager } from './service/playbackManager';
-
-// notice that the result of `remix build` is "just a module"
-import * as build from '../build/index.js';
 import bodyParser from 'body-parser';
+
+const build = require('../build/index.js');
 
 const app = express();
 const server = createServer(app);
@@ -49,7 +48,7 @@ app.use('/api', routes);
 // and your app is "just a request handler"
 app.all('*', createRequestHandler({ build }));
 
-app.use((err, req, res, next) => {
+app.use((err: Error, req: any, res: any, next: any): void => {
   console.error(err.stack);
   res.status(500).send('application error');
 });

@@ -1,14 +1,12 @@
 import { Content } from '@prisma/client';
-import { PlaybackContext } from '../../../types/AppStateType';
 import { prisma } from '../prisma';
+import { PlaybackContext } from '../../../types/AppStateType';
 
 export class PlaybackContextManager {
   private _context: PlaybackContext;
   private _rawContents: Content[] = [];
   private _contents: Content[] = [];
   private currentTrackIndex: number | null = 0;
-
-  private shuffle: boolean = false;
   private repeat: 'none' | 'one' | 'all' = 'all';
 
   private waitUntilLoadedPromise: Promise<void>;
@@ -103,7 +101,6 @@ export class PlaybackContextManager {
   }
 
   public setShuffle(shuffle: boolean) {
-    this.shuffle = shuffle;
     if (shuffle) {
       this.shuffleContents();
     } else {

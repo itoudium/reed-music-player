@@ -1,5 +1,4 @@
-import { Album, Artist } from '@prisma/client';
-import { IMetadataSource } from '../metadata/IMetadataSource';
+import { Artist } from '@prisma/client';
 import { prisma } from '../prisma';
 
 export async function registerArtist(name: string): Promise<Artist> {

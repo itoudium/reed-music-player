@@ -1,5 +1,8 @@
 {
   "cSpell.words": [
     "chakra"
-  ]
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
 }

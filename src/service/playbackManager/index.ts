@@ -1,15 +1,14 @@
 import audioDecode from 'audio-decode';
 import fs from 'fs/promises';
 import Speaker from 'speaker';
-import PCM from 'pcm-util';
 import EventEmitter from 'events';
 import { PlaybackContext, PlaybackInfoType } from '../../../types/AppStateType';
-import { prisma } from '../prisma';
 import { Content } from '@prisma/client';
 import { Mixer } from './mixer';
 import { z } from 'zod';
 import { getSetting, setSetting } from '../settings';
 import { PlaybackContextManager } from './playbackContextManager';
+const PCM = require('pcm-util');
 
 type JobType =
   | {
